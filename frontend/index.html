@@ -22,6 +22,30 @@
   </nav>
 </header>
 
+<div id="auth-modal" class="auth-modal hidden" aria-hidden="true">
+  <div class="auth-panel" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+    <button id="close-auth" class="close-auth" type="button" aria-label="Close login form">×</button>
+    <p class="muted auth-kicker">Demo access</p>
+    <h2 id="auth-title">Welcome back</h2>
+    <form id="login-form" class="login-form">
+      <label>
+        <span>Email</span>
+        <input id="login-email" type="email" name="email" placeholder="admin@swaraj.dev" required>
+      </label>
+      <label>
+        <span>Password</span>
+        <input id="login-password" type="password" name="password" placeholder="demo123" required>
+      </label>
+      <div class="demo-credentials">
+        <p>Demo login:</p>
+        <small>admin@swaraj.dev / demo123</small>
+      </div>
+      <button class="btn primary auth-submit" type="submit">Sign in</button>
+      <p id="auth-message" class="auth-message" aria-live="polite"></p>
+    </form>
+  </div>
+</div>
+
 <main id="top">
 <section class="hero wrap">
   <div class="hero-text">

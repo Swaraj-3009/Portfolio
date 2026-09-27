@@ -38,3 +38,24 @@ const SITE = {
       link: "https://github.com/Swaraj-3009/HotelMangementSystem" }
   ]
 };
+
+const DEMO_USERS = [
+  {
+    name: "Swaraj Kansyakar",
+    email: "admin@swaraj.dev",
+    password: "demo123",
+    role: "Administrator"
+  },
+  {
+    name: "Aarav Sen",
+    email: "aarav@demo.com",
+    password: "demo123",
+    role: "Visitor"
+  },
+  {
+    name: "Neha Roy",
+    email: "neha@demo.com",
+    password: "demo123",
+    role: "Reviewer"
+  }
+];

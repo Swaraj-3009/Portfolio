@@ -2,6 +2,79 @@ const $ = (s) => document.querySelector(s);
 const el = (t, c, h) => { const e = document.createElement(t); if (c) e.className = c; if (h !== undefined) e.innerHTML = h; return e; };
 const tags = (a) => a.map(t => `<span class="tag">${t}</span>`).join("");
 
+const authModal = $("#auth-modal");
+const authMessage = $("#auth-message");
+const authSlot = $("#auth-slot");
+const loginForm = $("#login-form");
+const closeAuthBtn = $("#close-auth");
+
+const storageKey = "demoAuthUser";
+
+const getStoredUser = () => {
+  try {
+    const value = JSON.parse(localStorage.getItem(storageKey));
+    return value || null;
+  } catch (error) {
+    return null;
+  }
+};
+
+const saveUser = (user) => localStorage.setItem(storageKey, JSON.stringify(user));
+const clearUser = () => localStorage.removeItem(storageKey);
+
+const openAuthModal = () => {
+  authModal.classList.remove("hidden");
+  authModal.setAttribute("aria-hidden", "false");
+  $("#login-email").focus();
+};
+
+const closeAuthModal = () => {
+  authModal.classList.add("hidden");
+  authModal.setAttribute("aria-hidden", "true");
+  authMessage.textContent = "";
+  loginForm.reset();
+};
+
+const renderAuth = () => {
+  const user = getStoredUser();
+  authSlot.innerHTML = user
+    ? `<div class="auth-user"><span>Hi, ${user.name.split(" ")[0]}</span><button id="logout-btn" type="button" class="btn auth-logout">Logout</button></div>`
+    : `<button id="login-btn" type="button" class="btn primary">Login</button>`;
+
+  const loginBtn = $("#login-btn");
+  const logoutBtn = $("#logout-btn");
+
+  if (loginBtn) loginBtn.addEventListener("click", openAuthModal);
+  if (logoutBtn) logoutBtn.addEventListener("click", () => { clearUser(); renderAuth(); });
+};
+
+const authenticateUser = (email, password) => {
+  const foundUser = DEMO_USERS.find(user => user.email.toLowerCase() === email.toLowerCase() && user.password === password);
+  if (!foundUser) {
+    authMessage.textContent = "Invalid email or password. Try the demo credentials below.";
+    authMessage.classList.add("error");
+    return;
+  }
+
+  authMessage.classList.remove("error");
+  authMessage.textContent = `Welcome, ${foundUser.name}! Redirecting...`;
+  saveUser({ name: foundUser.name, email: foundUser.email, role: foundUser.role });
+  setTimeout(() => {
+    closeAuthModal();
+    renderAuth();
+  }, 600);
+};
+
+loginForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  authenticateUser($("#login-email").value.trim(), $("#login-password").value.trim());
+});
+
+closeAuthBtn.addEventListener("click", closeAuthModal);
+authModal.addEventListener("click", (event) => {
+  if (event.target === authModal) closeAuthModal();
+});
+
 // links
 $("#gh").href = $("#gh2").href = SITE.github;
 $("#li").href = $("#li2").href = SITE.linkedin;
@@ -45,6 +118,8 @@ SITE.projects.forEach(p => {
   }
 });
 if (!mid.parentNode) list.appendChild(mid);
+
+renderAuth();
 
 // mobile menu
 const btn = document.querySelector(".menu-btn"), nav = $("#nav-links");
