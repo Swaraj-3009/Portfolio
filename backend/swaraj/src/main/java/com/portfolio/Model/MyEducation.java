@@ -1,4 +1,4 @@
-package com.portfolio.swaraj.Model;
+package com.portfolio.Model;
 
 public class MyEducation {
     private String degree;

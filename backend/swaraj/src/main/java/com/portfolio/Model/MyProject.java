@@ -1,6 +1,6 @@
-package com.portfolio.swaraj.Model;
+package com.portfolio.Model;
 
-public class Myproject {
+public class MyProject {
     private String projectName;
     private String projectDescription;
     private String TechnologiesUsed;
@@ -10,7 +10,7 @@ public class Myproject {
     private Boolean isCompleted;
 
     //constructor
-    public Myproject(String projectName, String projectDescription, String TechnologiesUsed, String GithubURL, String LiveURL, String projectImage, Boolean isCompleted) {
+    public MyProject(String projectName, String projectDescription, String TechnologiesUsed, String GithubURL, String LiveURL, String projectImage, Boolean isCompleted) {
         this.projectName = projectName;
         this.projectDescription = projectDescription;
         this.TechnologiesUsed = TechnologiesUsed;
