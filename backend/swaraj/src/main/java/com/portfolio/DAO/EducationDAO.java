@@ -1,6 +1,6 @@
 package com.portfolio.DAO;
 
-import com.portfolio.Model.MyEducation;
+import com.portfolio.model.MyEducation;
 
 public interface EducationDAO {
     public void addEducation(MyEducation education);

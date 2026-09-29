@@ -1,4 +1,4 @@
-package com.portfolio.Model;
+package com.portfolio.model;
 
 public class Users {
     private String username;
@@ -6,13 +6,7 @@ public class Users {
     private String password;
     private String role;
     
-    //constructor
-    public Users(String username, String email, String password, String role) {
-        this.username = username;
-        this.email = email;
-        this.password = password;
-        this.role = role;
-    }
+    
 
     //Getters
     public String getUsername() {

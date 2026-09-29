@@ -1,6 +1,6 @@
 package com.portfolio.DAO;
 
-import com.portfolio.Model.MyProfile;
+import com.portfolio.model.MyProfile;
 
 public interface ProfileDAO {
     public void updateUsename(MyProfile profile);

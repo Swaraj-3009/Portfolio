@@ -1,4 +1,4 @@
-package com.portfolio.Model;
+package com.portfolio.model;
 
 public class MyProject {
     private String projectName;

@@ -1,6 +1,6 @@
 package com.portfolio.DAO;
 
-import com.portfolio.Model.MySkills;
+import com.portfolio.model.MySkills;
 
 public interface SkillsDAO {
     public void addSkills(MySkills skills);

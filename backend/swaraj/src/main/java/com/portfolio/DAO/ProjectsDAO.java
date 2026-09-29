@@ -1,6 +1,6 @@
 package com.portfolio.DAO;
 
-import com.portfolio.Model.MyProject;
+import com.portfolio.model.MyProject;
 
 public interface ProjectsDAO {
     public void addProject(MyProject project);
