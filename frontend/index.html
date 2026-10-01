@@ -29,16 +29,22 @@
     <h2 id="auth-title">Welcome back</h2>
     <form id="login-form" class="login-form">
       <label>
-        <span>Email</span>
-        <input id="login-email" type="email" name="email" placeholder="admin@swaraj.dev" required>
+        <span>Sign in as</span>
+        <select id="login-type" name="loginType">
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+      </label>
+      <label>
+        <span>Username</span>
+        <input id="login-username" type="text" name="username" autocomplete="username" required>
       </label>
       <label>
         <span>Password</span>
-        <input id="login-password" type="password" name="password" placeholder="demo123" required>
+        <input id="login-password" type="password" name="password" autocomplete="current-password" required>
       </label>
       <div class="demo-credentials">
-        <p>Demo login:</p>
-        <small>admin@swaraj.dev / demo123</small>
+        <p>Use credentials registered in the backend database.</p>
       </div>
       <button class="btn primary auth-submit" type="submit">Sign in</button>
       <p id="auth-message" class="auth-message" aria-live="polite"></p>

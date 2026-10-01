@@ -8,7 +8,7 @@ const authSlot = $("#auth-slot");
 const loginForm = $("#login-form");
 const closeAuthBtn = $("#close-auth");
 
-const storageKey = "demoAuthUser";
+const storageKey = "servletAuthUser";
 
 const getStoredUser = () => {
   try {
@@ -25,7 +25,7 @@ const clearUser = () => localStorage.removeItem(storageKey);
 const openAuthModal = () => {
   authModal.classList.remove("hidden");
   authModal.setAttribute("aria-hidden", "false");
-  $("#login-email").focus();
+  $("#login-username").focus();
 };
 
 const closeAuthModal = () => {
@@ -48,26 +48,44 @@ const renderAuth = () => {
   if (logoutBtn) logoutBtn.addEventListener("click", () => { clearUser(); renderAuth(); });
 };
 
-const authenticateUser = (email, password) => {
-  const foundUser = DEMO_USERS.find(user => user.email.toLowerCase() === email.toLowerCase() && user.password === password);
-  if (!foundUser) {
-    authMessage.textContent = "Invalid email or password. Try the demo credentials below.";
-    authMessage.classList.add("error");
-    return;
-  }
-
+const authenticateUser = async (username, password, loginType) => {
+  const endpoint = loginType === "admin" ? "/admin/login" : "/user/login";
   authMessage.classList.remove("error");
-  authMessage.textContent = `Welcome, ${foundUser.name}! Redirecting...`;
-  saveUser({ name: foundUser.name, email: foundUser.email, role: foundUser.role });
-  setTimeout(() => {
-    closeAuthModal();
-    renderAuth();
-  }, 600);
+  authMessage.textContent = "Contacting the server...";
+
+  try {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+      body: new URLSearchParams({ username, password })
+    });
+    const responseText = (await response.text()).trim();
+
+    if (!response.ok) {
+      throw new Error(responseText || `Sign-in failed (${response.status}). Check your credentials.`);
+    }
+
+    saveUser({ name: username, role: loginType });
+    authMessage.textContent = responseText || "Signed in successfully.";
+    setTimeout(() => {
+      closeAuthModal();
+      renderAuth();
+    }, 600);
+  } catch (error) {
+    authMessage.textContent = error instanceof TypeError
+      ? "Could not reach the backend. Check that it is running and allows frontend requests."
+      : error.message;
+    authMessage.classList.add("error");
+  }
 };
 
 loginForm.addEventListener("submit", (event) => {
   event.preventDefault();
-  authenticateUser($("#login-email").value.trim(), $("#login-password").value.trim());
+  authenticateUser(
+    $("#login-username").value.trim(),
+    $("#login-password").value,
+    $("#login-type").value
+  );
 });
 
 closeAuthBtn.addEventListener("click", closeAuthModal);

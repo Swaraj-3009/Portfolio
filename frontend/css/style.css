@@ -100,11 +100,10 @@ h3{font-size:1.15rem;font-weight:700;letter-spacing:-.01em}
 .close-auth{position:absolute;top:12px;right:12px;background:none;border:0;color:var(--muted);font-size:2rem;cursor:pointer;line-height:1}
 .login-form{display:grid;gap:18px;margin-top:16px}
 .login-form label{display:grid;gap:8px;font-size:.9rem;color:var(--muted)}
-.login-form input{background:#0f1727;border:1px solid var(--line);border-radius:10px;padding:12px 14px;color:var(--text);font:inherit}
-.login-form input:focus{border-color:var(--accent);outline:none}
+.login-form input,.login-form select{background:#0f1727;border:1px solid var(--line);border-radius:10px;padding:12px 14px;color:var(--text);font:inherit}
+.login-form input:focus,.login-form select:focus{border-color:var(--accent);outline:none}
 .demo-credentials{padding:12px 14px;border:1px dashed var(--line);border-radius:10px;background:rgba(255,255,255,.02)}
 .demo-credentials p{font-size:.8rem;color:var(--muted);margin-bottom:4px}
-.demo-credentials small{color:var(--accent);font-family:var(--mono)}
 .auth-submit{width:100%;justify-content:center;border:none;cursor:pointer}
 .auth-message{min-height:20px;font-size:.85rem;color:var(--ok)}
 .auth-message.error{color:#ff7c7c}

@@ -52,5 +52,8 @@ class userLoginServlet extends HttpServlet{
         userSer.loginUser(user.getUsername(), user.getPassword());
         PrintWriter out = resp.getWriter();
         out.println("User logged in successfully");
+
+        RequestDispatcher rd = req.getRequestDispatcher("UserDashboard.html");
+        rd.forward(req, resp);
     }
 }

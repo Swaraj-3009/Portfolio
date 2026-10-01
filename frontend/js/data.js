@@ -39,23 +39,4 @@ const SITE = {
   ]
 };
 
-const DEMO_USERS = [
-  {
-    name: "Swaraj Kansyakar",
-    email: "admin@swaraj.dev",
-    password: "demo123",
-    role: "Administrator"
-  },
-  {
-    name: "Aarav Sen",
-    email: "aarav@demo.com",
-    password: "demo123",
-    role: "Visitor"
-  },
-  {
-    name: "Neha Roy",
-    email: "neha@demo.com",
-    password: "demo123",
-    role: "Reviewer"
-  }
-];
+const API_BASE_URL = "http://localhost:8080";
