@@ -6,7 +6,7 @@ import com.portfolio.DAO.DaoImpl.UserDaoImpl;
 import com.portfolio.Exception.UserNotFoundException;
 
 public class UserService {
-    public void registerUser(String username, String email, String password, String role){
+    public boolean registerUser(String username, String password, String email, String role){
         Users user = new Users();
         UserDAO userDao = new UserDaoImpl();
         Users fetchedUser = userDao.getUser(username, password);
@@ -20,8 +20,11 @@ public class UserService {
             user.setPassword(password);
             user.setRole(role);
 
-            userDao.addUser(user);
+            if(userDao.addUser(user)){
+                return true;
+            }
         }
+        return false;
     }
 
     public Users loginUser(String username, String password){

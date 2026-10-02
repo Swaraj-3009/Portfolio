@@ -13,7 +13,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-@WebServlet("admin/login")
+@WebServlet("/admin/login")
 public class AdminServlet extends HttpServlet {
     Admin admin = new Admin();
     AdminService adminSer = new AdminService();

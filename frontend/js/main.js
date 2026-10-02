@@ -7,6 +7,12 @@ const authMessage = $("#auth-message");
 const authSlot = $("#auth-slot");
 const loginForm = $("#login-form");
 const closeAuthBtn = $("#close-auth");
+const emailField = $("#registration-email-field");
+const loginRoleField = $("#login-role-field");
+const loginRoleSelect = $("#login-role");
+const showLoginBtn = $("#show-login");
+const showRegisterBtn = $("#show-register");
+let authMode = "login";
 
 const storageKey = "servletAuthUser";
 
@@ -22,7 +28,38 @@ const getStoredUser = () => {
 const saveUser = (user) => localStorage.setItem(storageKey, JSON.stringify(user));
 const clearUser = () => localStorage.removeItem(storageKey);
 
+const updateLoginCopy = () => {
+  const role = loginRoleSelect.value;
+  $("#auth-title").textContent = role === "admin" ? "Admin login" : "User login";
+  $("#auth-hint").textContent = `Sign in with your ${role} username and password.`;
+};
+
+const setAuthMode = (mode) => {
+  if (mode === "register" && loginRoleSelect.value !== "user") mode = "login";
+  authMode = mode;
+  const registering = mode === "register";
+  showRegisterBtn.hidden = loginRoleSelect.value !== "user";
+  if (registering) {
+    $("#auth-title").textContent = "Create your account";
+    $("#auth-hint").textContent = "Create a user account using the registration servlet.";
+  } else {
+    updateLoginCopy();
+  }
+  $("#auth-submit").textContent = registering ? "Register" : "Sign in";
+  emailField.hidden = !registering;
+  loginRoleField.hidden = registering;
+  $("#register-email").required = registering;
+  $("#guest-login").hidden = registering;
+  showLoginBtn.classList.toggle("active", !registering);
+  showLoginBtn.setAttribute("aria-pressed", String(!registering));
+  showRegisterBtn.classList.toggle("active", registering);
+  showRegisterBtn.setAttribute("aria-pressed", String(registering));
+  authMessage.textContent = "";
+  authMessage.classList.remove("error");
+};
+
 const openAuthModal = () => {
+  setAuthMode("login");
   authModal.classList.remove("hidden");
   authModal.setAttribute("aria-hidden", "false");
   $("#login-username").focus();
@@ -48,8 +85,7 @@ const renderAuth = () => {
   if (logoutBtn) logoutBtn.addEventListener("click", () => { clearUser(); renderAuth(); });
 };
 
-const authenticateUser = async (username, password, loginType) => {
-  const endpoint = loginType === "admin" ? "/admin/login" : "/user/login";
+const submitAuthRequest = async (endpoint, values, successText, user, isRegistration = false) => {
   authMessage.classList.remove("error");
   authMessage.textContent = "Contacting the server...";
 
@@ -57,16 +93,23 @@ const authenticateUser = async (username, password, loginType) => {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
-      body: new URLSearchParams({ username, password })
+      body: new URLSearchParams(values)
     });
     const responseText = (await response.text()).trim();
 
-    if (!response.ok) {
-      throw new Error(responseText || `Sign-in failed (${response.status}). Check your credentials.`);
+    if (!response.ok || !responseText.includes(successText)) {
+      throw new Error(response.status >= 500
+        ? "The server could not complete this request. Check your credentials and backend logs."
+        : responseText || `Request failed (${response.status}).`);
     }
 
-    saveUser({ name: username, role: loginType });
-    authMessage.textContent = responseText || "Signed in successfully.";
+    if (isRegistration) {
+      authMessage.textContent = "User account created successfully.";
+      return;
+    }
+
+    saveUser(user);
+    authMessage.textContent = "Signed in successfully.";
     setTimeout(() => {
       closeAuthModal();
       renderAuth();
@@ -79,13 +122,47 @@ const authenticateUser = async (username, password, loginType) => {
   }
 };
 
+const authenticateUser = (username, password, role) => {
+  const isAdmin = role === "admin";
+  return submitAuthRequest(
+    isAdmin ? "/admin/login" : "/user/login",
+    { username, password },
+    isAdmin ? "Admin Logged in" : "User logged in successfully",
+    { name: username, role }
+  );
+};
+
+const registerUser = (username, password, email) => submitAuthRequest(
+  "/user/register",
+  { username, password, email, role: "user" },
+  "User Registered",
+  { name: username, role: "user" },
+  true
+);
+
 loginForm.addEventListener("submit", (event) => {
   event.preventDefault();
-  authenticateUser(
-    $("#login-username").value.trim(),
-    $("#login-password").value,
-    $("#login-type").value
-  );
+  const username = $("#login-username").value.trim();
+  const password = $("#login-password").value;
+
+  if (authMode === "register") {
+    registerUser(username, password, $("#register-email").value.trim());
+  } else {
+    authenticateUser(username, password, loginRoleSelect.value);
+  }
+});
+
+showLoginBtn.addEventListener("click", () => setAuthMode("login"));
+showRegisterBtn.addEventListener("click", () => setAuthMode("register"));
+loginRoleSelect.addEventListener("change", () => {
+  showRegisterBtn.hidden = loginRoleSelect.value !== "user";
+  if (authMode === "register" && loginRoleSelect.value !== "user") setAuthMode("login");
+  else if (authMode === "login") updateLoginCopy();
+});
+$("#guest-login").addEventListener("click", () => {
+  saveUser({ name: "Guest", role: "guest" });
+  closeAuthModal();
+  renderAuth();
 });
 
 closeAuthBtn.addEventListener("click", closeAuthModal);

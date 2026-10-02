@@ -25,15 +25,23 @@
 <div id="auth-modal" class="auth-modal hidden" aria-hidden="true">
   <div class="auth-panel" role="dialog" aria-modal="true" aria-labelledby="auth-title">
     <button id="close-auth" class="close-auth" type="button" aria-label="Close login form">×</button>
-    <p class="muted auth-kicker">Demo access</p>
-    <h2 id="auth-title">Welcome back</h2>
+    <p class="muted auth-kicker">Portfolio access</p>
+    <h2 id="auth-title">User login</h2>
+    <div class="auth-modes" role="group" aria-label="Account actions">
+      <button id="show-login" class="auth-mode active" type="button" aria-pressed="true">Login</button>
+      <button id="show-register" class="auth-mode" type="button" aria-pressed="false">Register</button>
+    </div>
     <form id="login-form" class="login-form">
-      <label>
-        <span>Sign in as</span>
-        <select id="login-type" name="loginType">
+      <label id="login-role-field">
+        <span>Account type</span>
+        <select id="login-role" name="loginRole">
           <option value="user">User</option>
           <option value="admin">Admin</option>
         </select>
+      </label>
+      <label id="registration-email-field" hidden>
+        <span>Email</span>
+        <input id="register-email" type="email" name="email" autocomplete="email">
       </label>
       <label>
         <span>Username</span>
@@ -44,9 +52,10 @@
         <input id="login-password" type="password" name="password" autocomplete="current-password" required>
       </label>
       <div class="demo-credentials">
-        <p>Use credentials registered in the backend database.</p>
+        <p id="auth-hint">Sign in with your user username and password.</p>
       </div>
-      <button class="btn primary auth-submit" type="submit">Sign in</button>
+      <button id="auth-submit" class="btn primary auth-submit" type="submit">Sign in</button>
+      <button id="guest-login" class="btn auth-guest" type="button">Continue as guest</button>
       <p id="auth-message" class="auth-message" aria-live="polite"></p>
     </form>
   </div>

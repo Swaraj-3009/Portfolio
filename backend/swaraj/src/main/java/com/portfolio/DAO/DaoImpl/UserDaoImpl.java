@@ -11,7 +11,7 @@ import com.portfolio.model.Users;
 public class UserDaoImpl implements UserDAO {
 
     @Override
-    public void addUser(Users user) {
+    public boolean addUser(Users user) {
         String sql = "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)";
 
         try (Connection con = DatabaseConnection.getConnection();
@@ -23,20 +23,18 @@ public class UserDaoImpl implements UserDAO {
 
             int rows = ps.executeUpdate();
             if(rows > 0){
-                 System.out.println("User Added Succesfully");
-            }
-            else{
-                System.out.println("User Not Added");
+                return true;
             }
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return false;
     }
 
     @Override
     public Users getUser(String username, String password) {
-        String sql = "SELECT * FROM users WHERE useername = ? AND password = ?";
+        String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
 
         try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {

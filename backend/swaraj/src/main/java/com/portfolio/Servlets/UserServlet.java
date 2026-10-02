@@ -26,13 +26,20 @@ public class UserServlet extends HttpServlet {
         user.setEmail(req.getParameter("email"));
         user.setRole(req.getParameter("role"));
 
-        userSer.registerUser(user.getUsername(), user.getPassword(), user.getEmail(), user.getRole());
-        resp.setStatus(201);
         PrintWriter out = resp.getWriter();
-        out.println("User Registered");
 
-        RequestDispatcher rd = req.getRequestDispatcher("login.html");
-        rd.forward(req, resp);
+        if(userSer.registerUser(user.getUsername(), user.getPassword(), user.getEmail(), user.getRole())){
+            resp.setStatus(201);
+            out.println("User Registered");
+
+            RequestDispatcher rd = req.getRequestDispatcher("login.html");
+            rd.forward(req, resp);
+        }
+        else{
+            resp.setStatus(400);
+            out.println("User Not Registered");
+        }
+        
     }
 }
 
@@ -49,11 +56,17 @@ class userLoginServlet extends HttpServlet{
         user.setEmail(req.getParameter("email"));
         user.setRole(req.getParameter("role"));
 
-        userSer.loginUser(user.getUsername(), user.getPassword());
         PrintWriter out = resp.getWriter();
-        out.println("User logged in successfully");
 
-        RequestDispatcher rd = req.getRequestDispatcher("UserDashboard.html");
-        rd.forward(req, resp);
+        if(userSer.loginUser(user.getUsername(), user.getPassword()) != null){
+            out.println("User logged in successfully");
+
+            RequestDispatcher rd = req.getRequestDispatcher("UserDashboard.html");
+            rd.forward(req, resp);
+        }
+        else{
+            out.println("Something went wrong");
+        }
+        
     }
 }

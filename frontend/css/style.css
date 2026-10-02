@@ -93,11 +93,14 @@ h3{font-size:1.15rem;font-weight:700;letter-spacing:-.01em}
 .auth-user{display:flex;align-items:center;gap:10px;color:var(--text)}
 .auth-user span{font-size:.9rem;color:var(--muted)}
 .auth-logout{padding:8px 14px;font-size:.8rem}
-.auth-modal{position:fixed;inset:0;background:rgba(9,12,20,.72);display:grid;place-items:center;z-index:50;padding:20px}
+.auth-modal{position:fixed;inset:0;background:rgba(9,12,20,.72);display:grid;place-items:center;z-index:50;padding:20px;overflow-y:auto}
 .auth-modal.hidden{display:none}
-.auth-panel{position:relative;width:min(100%,420px);background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:28px 24px;box-shadow:0 26px 70px rgba(0,0,0,.35)}
+.auth-panel{position:relative;width:min(100%,420px);max-height:calc(100vh - 40px);max-height:calc(100dvh - 40px);overflow-y:auto;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:28px 24px;box-shadow:0 26px 70px rgba(0,0,0,.35)}
 .auth-kicker{font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase}
 .close-auth{position:absolute;top:12px;right:12px;background:none;border:0;color:var(--muted);font-size:2rem;cursor:pointer;line-height:1}
+.auth-modes{display:grid;grid-template-columns:1fr 1fr;margin-top:18px;border-bottom:1px solid var(--line)}
+.auth-mode{background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);font:inherit;padding:8px;cursor:pointer}
+.auth-mode.active{border-color:var(--accent);color:var(--text)}
 .login-form{display:grid;gap:18px;margin-top:16px}
 .login-form label{display:grid;gap:8px;font-size:.9rem;color:var(--muted)}
 .login-form input,.login-form select{background:#0f1727;border:1px solid var(--line);border-radius:10px;padding:12px 14px;color:var(--text);font:inherit}
@@ -105,6 +108,7 @@ h3{font-size:1.15rem;font-weight:700;letter-spacing:-.01em}
 .demo-credentials{padding:12px 14px;border:1px dashed var(--line);border-radius:10px;background:rgba(255,255,255,.02)}
 .demo-credentials p{font-size:.8rem;color:var(--muted);margin-bottom:4px}
 .auth-submit{width:100%;justify-content:center;border:none;cursor:pointer}
+.auth-guest{width:100%;text-align:center;cursor:pointer}
 .auth-message{min-height:20px;font-size:.85rem;color:var(--ok)}
 .auth-message.error{color:#ff7c7c}
 
