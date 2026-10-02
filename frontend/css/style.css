@@ -6,6 +6,7 @@
   --r:6px; --w:1040px;
 }
 *{box-sizing:border-box;margin:0}
+[hidden]{display:none!important}
 html{scroll-behavior:smooth;scroll-padding-top:72px}
 body{background:var(--bg);color:var(--text);font:400 17px/1.65 var(--sans);-webkit-font-smoothing:antialiased}
 a{color:inherit}
@@ -84,7 +85,7 @@ h3{font-size:1.15rem;font-weight:700;letter-spacing:-.01em}
 .edu p{margin-top:6px}
 .contact{list-style:none;padding:0;margin-top:20px;max-width:520px}
 .contact li{display:flex;gap:24px;padding:14px 0;border-bottom:1px solid var(--line)}
-.contact span{width:80px;color:var(--muted)}
+.contact li>span:first-child{width:80px;color:var(--muted);flex:none}
 .contact a{text-underline-offset:4px;overflow-wrap:anywhere}.contact a:hover{color:var(--accent)}
 .foot{padding-top:96px;padding-bottom:40px;color:var(--muted);font-size:.85rem}
 

@@ -178,10 +178,88 @@ $("#li2").textContent = SITE.linkedin.replace("https://www.", "");
 $("#mail").href = "mailto:" + SITE.email; $("#mail").textContent = SITE.email;
 $("#grad").textContent = SITE.gradYear; $("#yr").textContent = new Date().getFullYear();
 
+const parseProfileHtml = (markup) => {
+  const document = new DOMParser().parseFromString(markup, "text/html");
+  const profile = { name: document.querySelector("h2")?.textContent.trim() || "" };
+
+  document.querySelectorAll("p").forEach((paragraph) => {
+    const label = paragraph.querySelector("strong")?.textContent.replace(/:$/, "").trim().toLowerCase();
+    if (!label) return;
+    profile[label] = paragraph.textContent.slice(paragraph.querySelector("strong").textContent.length).trim();
+  });
+
+  profile.image = document.querySelector("img")?.getAttribute("src")?.trim() || "";
+  return profile;
+};
+
+const updateProfileLink = (selector, value) => {
+  if (!value) return;
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "https:" && url.protocol !== "http:") return;
+    const link = $(selector);
+    link.href = url.href;
+    link.textContent = url.href.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
+  } catch (error) {
+    return;
+  }
+};
+
+const applyProfile = (profile) => {
+  if (profile.name) {
+    $("#profile-name").textContent = profile.name;
+    $("#footer-name").textContent = profile.name;
+  }
+  if (profile.about) {
+    $("#profile-about").textContent = profile.about;
+    $("#about-extra").hidden = true;
+  }
+  if (profile.email) {
+    $("#mail").href = `mailto:${profile.email}`;
+    $("#mail").textContent = profile.email;
+  }
+  updateProfileLink("#gh", profile.github);
+  updateProfileLink("#gh2", profile.github);
+  updateProfileLink("#li", profile.linkedin);
+  updateProfileLink("#li2", profile.linkedin);
+
+  if (profile.phone) {
+    $("#phone").href = `tel:${profile.phone.replace(/[^+\d]/g, "")}`;
+    $("#phone").textContent = profile.phone;
+    $("#phone-row").hidden = false;
+  }
+  if (profile.address) {
+    $("#address").textContent = profile.address;
+    $("#address-row").hidden = false;
+  }
+  if (profile.image) {
+    try {
+      const imageUrl = new URL(profile.image, API_BASE_URL);
+      if (imageUrl.protocol === "https:" || imageUrl.protocol === "http:") {
+        const image = new Image();
+        image.src = imageUrl.href;
+        image.alt = `Photo of ${profile.name || SITE.name}`;
+        ph.replaceChildren(image);
+        ph.classList.remove("empty");
+      }
+    } catch (error) {
+      return;
+    }
+  }
+};
+
+const loadProfile = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/myProfile`, { headers: { Accept: "text/html" } });
+    if (response.ok) applyProfile(parseProfileHtml(await response.text()));
+  } catch {}
+};
+
 // photo
 const ph = $("#photo");
 if (SITE.photoUrl) { const i = new Image(); i.src = SITE.photoUrl; i.alt = "Photo of " + SITE.name; ph.appendChild(i); }
 else { ph.classList.add("empty"); ph.textContent = "SK"; }
+loadProfile();
 
 // learning path
 const label = { done: "Done", now: "Learning now", next: "Next" };
