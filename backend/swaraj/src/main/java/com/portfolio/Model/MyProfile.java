@@ -10,16 +10,6 @@ public class MyProfile {
     private String aboutMe;
     private String profileImage;
 
-    //constructor
-    public MyProfile(String name, String email, String phone, String address, String aboutMe, String profileImage) {
-        this.name = name;
-        this.email = email;
-        this.phone = phone;
-        this.address = address;
-        this.aboutMe = aboutMe;
-        this.profileImage = profileImage;
-    }
-
     //getters
     public String getName() {
         return name;
