@@ -42,17 +42,18 @@ public class MyProfileDaoImpl implements MyProfileDAO{
 
     @Override
     public boolean updateProfile(MyProfile profile) {
-        String sql = "UPDATE my_profile SET name = ? , about_me = ?, email = ?, github_url = ?, linkedin_url = ?, address = ?, phone = ?, profile_image = ? WHERE id = 1";
+        String sql = "UPDATE my_profile SET name = COALESCE(?, name), about_me = COALESCE(?, about_me), email = COALESCE(?, email), github_url = COALESCE(?, github_url), linkedin_url = COALESCE(?, linkedin_url), address = COALESCE(?, address), phone = COALESCE(?, phone), profile_image = COALESCE(?, profile_image) WHERE id = 1";
 
         try(Connection con = DatabaseConnection.getConnection();
             PreparedStatement ps = con.prepareStatement(sql)){
                 ps.setString(1, profile.getName());
-                ps.setString(2, profile.getEmail());
-                ps.setString(3, profile.getGithubURL());
-                ps.setString(4, profile.getLinkedinURL());
-                ps.setString(5, profile.getPhone());
+                ps.setString(2, profile.getAboutMe());
+                ps.setString(3, profile.getEmail());
+                ps.setString(4, profile.getGithubURL());
+                ps.setString(5, profile.getLinkedinURL());
                 ps.setString(6, profile.getAddress());
-                ps.setString(7, profile.getProfileImage());
+                ps.setString(7, profile.getPhone());
+                ps.setString(8, profile.getProfileImage());
 
                 int rows = ps.executeUpdate();
                 if(rows > 0){

@@ -1,7 +1,6 @@
-package com.portfolio.Servlets;
+package com.portfolio.Servlets.AdminServlet;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 
 import com.portfolio.Service.AdminService;
 import com.portfolio.model.Admin;
@@ -13,32 +12,10 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
-//Admin login
-@WebServlet("/admin/login")
-public class AdminServlet extends HttpServlet {
-    Admin admin = new Admin();
-    AdminService adminSer = new AdminService();
-
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
-        admin.setUsername(req.getParameter("username"));
-        admin.setPassword(req.getParameter("password"));
-
-        adminSer.LoginAdmin(admin);
-        resp.setStatus(201);
-        PrintWriter out = resp.getWriter();
-        out.println("Admin Logged in");
-
-        RequestDispatcher rd = req.getRequestDispatcher("AdminDashboard.html");
-        rd.forward(req, resp);
-    }
-}
-
-//My Profile
 @WebServlet("/admin/myProfile")
-class MyProfileServlet extends HttpServlet {
-    MyProfile profile = new MyProfile();
+public class MyProfileServlet extends HttpServlet {
     AdminService adminSer = new AdminService();
 
     @Override
@@ -83,8 +60,10 @@ class MyProfileServlet extends HttpServlet {
         resp.getWriter().write(html);
     }
 
+    //update profile
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
+        MyProfile profile = new MyProfile();
         profile.setName(req.getParameter("name"));
         profile.setAddress(req.getParameter("address"));
         profile.setAboutMe(req.getParameter("aboutMe"));
@@ -94,13 +73,22 @@ class MyProfileServlet extends HttpServlet {
         profile.setPhone(req.getParameter("phone"));
         profile.setProfileImage(req.getParameter("profileImage"));
 
-        if(adminSer.UpdateAdminProfile(profile)){
-            resp.setStatus(201);
-            PrintWriter out = resp.getWriter();
-            out.println("Profile Updated");
+        HttpSession session = req.getSession(false);
 
+        if (session == null || session.getAttribute("loggedInAdmin") == null) {
+            resp.sendRedirect(req.getContextPath() + "/login.html");
+            return;
+        }
+
+        Admin loggedInAdmin = (Admin) session.getAttribute("loggedInAdmin");
+
+        if(adminSer.UpdateAdminProfile(loggedInAdmin, profile)){
+            resp.setStatus(HttpServletResponse.SC_OK);
             RequestDispatcher rd = req.getRequestDispatcher("AdminDashboard.html");
             rd.forward(req, resp);
+        } else {
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Profile update failed");
         }
     }
 }
+

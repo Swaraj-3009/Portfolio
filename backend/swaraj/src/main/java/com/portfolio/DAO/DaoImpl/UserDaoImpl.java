@@ -42,15 +42,14 @@ public class UserDaoImpl implements UserDAO {
             ps.setString(2, password);
             
             try(ResultSet rs = ps.executeQuery()){
-                Users user = new Users();
-
                 if(rs.next()){
+                    Users user = new Users();
                     user.setUsername(rs.getString("username"));
                     user.setPassword(rs.getString("password"));
                     user.setEmail(rs.getString("email"));
                     user.setRole(rs.getString("role"));
-
                     return user;
+
                 }
                 else{
                     return null;
