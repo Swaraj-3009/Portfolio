@@ -46,6 +46,7 @@ const setAuthMode = (mode) => {
     updateLoginCopy();
   }
   $("#auth-submit").textContent = registering ? "Register" : "Sign in";
+  $("#login-password").autocomplete = registering ? "new-password" : "current-password";
   emailField.hidden = !registering;
   loginRoleField.hidden = registering;
   $("#register-email").required = registering;
@@ -88,23 +89,36 @@ const renderAuth = () => {
 const submitAuthRequest = async (endpoint, values, successText, user, isRegistration = false) => {
   authMessage.classList.remove("error");
   authMessage.textContent = "Contacting the server...";
+  const submitButton = $("#auth-submit");
+  submitButton.disabled = true;
+  loginForm.setAttribute("aria-busy", "true");
 
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
       body: new URLSearchParams(values)
     });
     const responseText = (await response.text()).trim();
 
-    if (!response.ok || !responseText.includes(successText)) {
+    const registrationSucceeded = isRegistration && response.status === 201;
+    const loginSucceeded = !isRegistration && (response.redirected || responseText.includes(successText));
+    if (!response.ok || (!registrationSucceeded && !loginSucceeded)) {
       throw new Error(response.status >= 500
         ? "The server could not complete this request. Check your credentials and backend logs."
         : responseText || `Request failed (${response.status}).`);
     }
 
     if (isRegistration) {
-      authMessage.textContent = "User account created successfully.";
+      setAuthMode("login");
+      $("#login-password").value = "";
+      authMessage.textContent = "Account created. Sign in with your new credentials.";
+      return;
+    }
+
+    if (response.redirected) {
+      window.location.assign(response.url);
       return;
     }
 
@@ -119,6 +133,9 @@ const submitAuthRequest = async (endpoint, values, successText, user, isRegistra
       ? "Could not reach the backend. Check that it is running and allows frontend requests."
       : error.message;
     authMessage.classList.add("error");
+  } finally {
+    submitButton.disabled = false;
+    loginForm.removeAttribute("aria-busy");
   }
 };
 

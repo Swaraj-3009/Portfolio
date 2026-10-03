@@ -109,6 +109,7 @@ h3{font-size:1.15rem;font-weight:700;letter-spacing:-.01em}
 .demo-credentials{padding:12px 14px;border:1px dashed var(--line);border-radius:10px;background:rgba(255,255,255,.02)}
 .demo-credentials p{font-size:.8rem;color:var(--muted);margin-bottom:4px}
 .auth-submit{width:100%;justify-content:center;border:none;cursor:pointer}
+.auth-submit:disabled{cursor:wait;opacity:.65}
 .auth-guest{width:100%;text-align:center;cursor:pointer}
 .auth-message{min-height:20px;font-size:.85rem;color:var(--ok)}
 .auth-message.error{color:#ff7c7c}
