@@ -1,18 +1,22 @@
 package com.portfolio.Service;
 
+import java.util.List;
+
 import com.portfolio.DAO.AdminDAO;
 import com.portfolio.DAO.MyProfileDAO;
+import com.portfolio.DAO.SkillsDAO;
 import com.portfolio.DAO.DaoImpl.AdminDaoImpl;
 import com.portfolio.DAO.DaoImpl.MyProfileDaoImpl;
+import com.portfolio.DAO.DaoImpl.SkillsDaoImpl;
 import com.portfolio.Exception.AdminNotFoundException;
 import com.portfolio.model.Admin;
 import com.portfolio.model.MyProfile;
+import com.portfolio.model.MySkills;
 
 public class AdminService {
-
+    //login
     public Admin LoginAdmin(Admin admin) {
         AdminDAO adminDao = new AdminDaoImpl();
-
         Admin fetchAdmin = adminDao.getAdmin(admin.getUsername(), admin.getPassword());
 
         if(fetchAdmin == null){
@@ -23,6 +27,8 @@ public class AdminService {
         }
     }
 
+
+    //profile
     public boolean UpdateAdminProfile(Admin loggedInAdmin, MyProfile profile){
         MyProfileDAO myProfileDao = new MyProfileDaoImpl();
         MyProfile myProfile = new MyProfile();
@@ -57,14 +63,41 @@ public class AdminService {
                     return myProfileDao.updateProfile(myProfile);
                 }
         }
-
         return false;
     }
-
-    public MyProfile ShowProfile(){
+    public MyProfile showProfile(){
         MyProfileDAO myProfileDao = new MyProfileDaoImpl();
         MyProfile myProfile = myProfileDao.getProfile();
 
         return myProfile;
+    }
+
+
+    //Skill
+    public boolean addMySkill(MySkills skill){
+        SkillsDAO skillsDao = new SkillsDaoImpl();
+        if (!(skill == null || skill.getSkillName() == null || skill.getSkillName().trim().isEmpty())) {
+            return skillsDao.addSkills(skill);
+        }
+        return false;
+    }
+    public boolean updateMySkill(MySkills skill){
+        SkillsDAO skillsDao = new SkillsDaoImpl();
+        if(skillsDao.updateSkills(skill)){
+            return true;
+        }
+        return false;
+    }
+    public List<MySkills> showMySkill(){
+        SkillsDAO mySkillDao = new SkillsDaoImpl();
+        return mySkillDao.getSkills();
+    }
+    public boolean deleteMySkill(MySkills skill){
+        SkillsDAO skillsDao = new SkillsDaoImpl();
+
+        if(skillsDao.deleteSkills(skill)){
+            return true;
+        }
+        return false;
     }
 }

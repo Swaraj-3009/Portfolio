@@ -20,7 +20,7 @@ public class MyProfileServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
-        MyProfile profile = adminSer.ShowProfile();
+        MyProfile profile = adminSer.showProfile();
 
         resp.setContentType("text/html");
         resp.setCharacterEncoding("UTF-8");

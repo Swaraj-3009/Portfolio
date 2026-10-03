@@ -1,16 +1,14 @@
 package com.portfolio.model;
 
 public class MySkills {
+    private int id;
     private String skillName;
     private Boolean isCompleted;
 
-    //constructor
-    public MySkills(String skillName, Boolean isCompleted) {
-        this.skillName = skillName;
-        this.isCompleted = isCompleted;
-    }
-
     //getters
+    public int getId(){
+        return id;
+    }
     public String getSkillName() {
         return skillName;
     }
@@ -19,6 +17,9 @@ public class MySkills {
     }
 
     //setters
+    public void setId(int id){
+        this.id = id;
+    }
     public void setSkillName(String skillName) {
         this.skillName = skillName;
     }
