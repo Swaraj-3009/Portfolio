@@ -18,11 +18,11 @@ CREATE TABLE IF NOT EXISTS my_profile (
     name VARCHAR(120) NOT NULL DEFAULT '',
     about_me TEXT,
     email VARCHAR(254) NOT NULL DEFAULT '',
-    github_url VARCHAR(2048) NOT NULL DEFAULT '',
-    linkedin_url VARCHAR(2048) NOT NULL DEFAULT '',
+    github_url VARCHAR(2048) DEFAULT '',
+    linkedin_url VARCHAR(2048) DEFAULT '',
     address TEXT,
-    phone VARCHAR(32) NOT NULL DEFAULT '',
-    profile_image TEXT,
+    phone VARCHAR(32) DEFAULT '',
+    profile_image VARCHAR(2048) DEFAULT '',
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -55,4 +55,5 @@ CREATE TABLE IF NOT EXISTS my_education (
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+INSERT IGNORE INTO admin (username, password) VALUES ('admin', 'admin');
 INSERT IGNORE INTO my_profile (id) VALUES (1);
