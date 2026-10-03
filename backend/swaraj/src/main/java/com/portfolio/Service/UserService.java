@@ -40,7 +40,25 @@ public class UserService {
         }
     }
 
-    // public void UpdateUsername(String password){
-        
-    // }
+    public boolean UpdateUsername(Users loggedInUser, Users user){
+        UserDAO userDao = new UserDaoImpl();
+
+        if(userDao.updateUsername(loggedInUser, user.getUsername(), user.getPassword())){
+            return true;
+        }
+        return false;
+    }
+
+    public boolean UpdatePassword(Users loggedInUser, Users user){
+        UserDAO userDao = new UserDaoImpl();
+
+        if(userDao.updateEmail(loggedInUser, user.getEmail(), user.getPassword())){
+            return true;
+        }
+        return false;
+    }
+
+    public boolean UpdateEmail(Users loggedInUser, Users user){
+        return false;
+    }
 }

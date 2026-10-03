@@ -11,6 +11,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.annotation.WebServlet;
 
 //register
@@ -59,14 +60,125 @@ class userLoginServlet extends HttpServlet{
         PrintWriter out = resp.getWriter();
 
         if(userSer.loginUser(user.getUsername(), user.getPassword()) != null){
-            out.println("User logged in successfully");
+            // Get or create session
+            HttpSession session = req.getSession(true);
+            req.changeSessionId();
 
-            RequestDispatcher rd = req.getRequestDispatcher("UserDashboard.html");
-            rd.forward(req, resp);
+            // Store logged-in user's details
+            session.setAttribute("loggedInUser", user);
+
+            // Optional: set session timeout (30 minutes)
+            session.setMaxInactiveInterval(30 * 60);
+
+            // Redirect to dashboard
+            resp.sendRedirect(req.getContextPath() + "/UserDashboard.html");
+
+
+            // resp.setStatus(201);
+            // out.println("User logged in successfully");
+
+            // RequestDispatcher rd = req.getRequestDispatcher("UserDashboard.html");
+            // rd.forward(req, resp);
         }
         else{
+            resp.setStatus(401);
             out.println("Something went wrong");
         }
         
+    }
+}
+
+//Update User Username
+@WebServlet("/user/updateUsername")
+class UpdateUserServlet extends HttpServlet{
+    Users user = new Users();
+    UserService userSer = new UserService();
+
+    @Override 
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
+        user.setUsername(req.getParameter("username"));
+        user.setPassword(req.getParameter("password"));
+
+        PrintWriter out = resp.getWriter();
+        HttpSession session = req.getSession(false);
+
+        if (session == null || session.getAttribute("loggedInUser") == null) {
+            resp.sendRedirect(req.getContextPath() + "/login.html");
+            return;
+        }
+
+        Users loggedInUser = (Users) session.getAttribute("loggedInUser");
+
+        if(userSer.UpdateUsername(loggedInUser, user)){
+            resp.setStatus(201);
+            out.println("Username Updated");
+        }
+        else{
+            resp.setStatus(401);
+            out.println("Something Went Wrong");
+        }
+    }
+}
+
+//Update User Password
+@WebServlet("/user/updateUserPassword")
+class UpdateUserPasswordServlet extends HttpServlet{
+    Users user = new Users();
+    UserService userSer = new UserService();
+
+    @Override 
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
+        user.setPassword(req.getParameter("password"));
+
+        PrintWriter out = resp.getWriter();
+        HttpSession session = req.getSession(false);
+
+        if (session == null || session.getAttribute("loggedInUser") == null) {
+            resp.sendRedirect(req.getContextPath() + "/login.html");
+            return;
+        }
+
+        Users loggedInUser = (Users) session.getAttribute("loggedInUser");
+
+        if(userSer.UpdatePassword(loggedInUser, user)){
+            resp.setStatus(201);
+            out.println("Password Updated");
+        }
+        else{
+            resp.setStatus(401);
+            out.println("Something Went Wrong");
+        }
+    }
+}
+
+//Update User Email
+@WebServlet("/user/updateUserEmail")
+class UpdateUserEmailServlet extends HttpServlet{
+    Users user = new Users();
+    UserService userSer = new UserService();
+
+    @Override 
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
+        user.setEmail(req.getParameter("email"));
+        user.setPassword(req.getParameter("password"));
+
+        PrintWriter out = resp.getWriter();
+        HttpSession session = req.getSession(false);
+
+        if (session == null || session.getAttribute("loggedInUser") == null) {
+            resp.sendRedirect(req.getContextPath() + "/login.html");
+            return;
+        }
+
+        Users loggedInUser = (Users) session.getAttribute("loggedInUser");
+
+        if(userSer.UpdateEmail(loggedInUser, user)){
+            resp.setStatus(201);
+            out.println("Email Updated");
+        }
+        else{
+            resp.setStatus(401);
+            out.println("Something Went Wrong");
+        }
     }
 }

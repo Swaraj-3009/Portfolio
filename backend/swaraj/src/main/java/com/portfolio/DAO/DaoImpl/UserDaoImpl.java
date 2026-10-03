@@ -49,8 +49,12 @@ public class UserDaoImpl implements UserDAO {
                     user.setPassword(rs.getString("password"));
                     user.setEmail(rs.getString("email"));
                     user.setRole(rs.getString("role"));
+
+                    return user;
                 }
-                return user;
+                else{
+                    return null;
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -59,7 +63,7 @@ public class UserDaoImpl implements UserDAO {
     }
 
     @Override
-    public void updateUsername(Users user, String newUsername, String password) {
+    public boolean updateUsername(Users user, String newUsername, String password) {
         String sql = "UPDATE users SET username = ? WHERE username = ? AND password = ?";
 
         try(Connection con = DatabaseConnection.getConnection();
@@ -70,19 +74,17 @@ public class UserDaoImpl implements UserDAO {
 
                 int rows = ps.executeUpdate();
                 if(rows > 0){
-                    System.out.println("Username Updated Succesfully");
-                }
-                else{
-                    System.out.println("Username Not Updated");
+                    return true;
                 }
         }
         catch(Exception e){
             e.printStackTrace();
         }
+        return false;
     }
 
     @Override
-    public void updatePassword(Users user, String oldPassword, String newPassword) {
+    public boolean updatePassword(Users user, String oldPassword, String newPassword) {
         String sql = "UPDATE users SET password = ? WHERE username = ? AND password = ?";
 
         try(Connection con = DatabaseConnection.getConnection();
@@ -93,19 +95,17 @@ public class UserDaoImpl implements UserDAO {
 
                 int rows = ps.executeUpdate();
                 if(rows > 0){
-                    System.out.println("Password Updated Succesfully");
-                }
-                else{
-                    System.out.println("Password Not Updated");
+                    return true;
                 }
         }
         catch(Exception e){
             e.printStackTrace();
         }
+        return false;
     }
 
     @Override
-    public void updateEmail(Users user, String newEmail, String password) {
+    public boolean updateEmail(Users user, String newEmail, String password) {
         String sql = "UPDATE users SET email = ? WHERE username = ? AND password = ?";
 
         try(Connection con = DatabaseConnection.getConnection();
@@ -116,15 +116,12 @@ public class UserDaoImpl implements UserDAO {
 
                 int rows = ps.executeUpdate();
                 if(rows > 0){
-                    System.out.println("Email Updated Succesfully");
-                }
-                else{
-                    System.out.println("Email Not Updated");
+                    return true;
                 }
         }
         catch(Exception e){
             e.printStackTrace();
         }
-    }
-    
+        return false;
+    }  
 }
