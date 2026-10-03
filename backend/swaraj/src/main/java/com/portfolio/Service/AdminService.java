@@ -74,30 +74,38 @@ public class AdminService {
 
 
     //Skill
-    public boolean addMySkill(MySkills skill){
+    public boolean addMySkill(Admin loggedInAdmin, MySkills skill){
         SkillsDAO skillsDao = new SkillsDaoImpl();
+        if (loggedInAdmin == null || loggedInAdmin.getUsername() == null || loggedInAdmin.getUsername().trim().isEmpty()) {
+            return false;
+        }
         if (!(skill == null || skill.getSkillName() == null || skill.getSkillName().trim().isEmpty())) {
             return skillsDao.addSkills(skill);
         }
         return false;
     }
-    public boolean updateMySkill(MySkills skill){
+    public boolean updateMySkill(Admin loggedInAdmin, MySkills skill){
         SkillsDAO skillsDao = new SkillsDaoImpl();
-        if(skillsDao.updateSkills(skill)){
-            return true;
+        if (loggedInAdmin == null || loggedInAdmin.getUsername() == null || loggedInAdmin.getUsername().trim().isEmpty()) {
+            return false;
         }
-        return false;
+        if (skill == null || skill.getId() <= 0) {
+            return false;
+        }
+        return skillsDao.updateSkills(skill);
     }
     public List<MySkills> showMySkill(){
         SkillsDAO mySkillDao = new SkillsDaoImpl();
         return mySkillDao.getSkills();
     }
-    public boolean deleteMySkill(MySkills skill){
+    public boolean deleteMySkill(Admin loggedInAdmin, MySkills skill){
         SkillsDAO skillsDao = new SkillsDaoImpl();
-
-        if(skillsDao.deleteSkills(skill)){
-            return true;
+        if (loggedInAdmin == null || loggedInAdmin.getUsername() == null || loggedInAdmin.getUsername().trim().isEmpty()) {
+            return false;
         }
-        return false;
+        if (skill == null || skill.getId() <= 0) {
+            return false;
+        }
+        return skillsDao.deleteSkills(skill);
     }
 }

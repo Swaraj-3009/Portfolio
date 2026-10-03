@@ -25,19 +25,19 @@ public class AdminLoginServlet extends HttpServlet {
         admin.setPassword(req.getParameter("password"));
 
         PrintWriter out = resp.getWriter();
-        
-        if(adminSer.LoginAdmin(admin) != null){
+
+        try {
+            Admin loggedInAdmin = adminSer.LoginAdmin(admin);
             HttpSession session = req.getSession(true);
             req.changeSessionId();
 
-            session.setAttribute("loggedInAdmin", admin);
+            session.setAttribute("loggedInAdmin", loggedInAdmin);
             session.setMaxInactiveInterval(30 * 60);
 
             resp.sendRedirect(req.getContextPath() + "/AdminDashboard.html");
-        }
-        else{
+        } catch (Exception e) {
             resp.setStatus(401);
-            out.println("Something Went Wrong");
-        } 
+            out.println("Invalid admin credentials");
+        }
     }
 }

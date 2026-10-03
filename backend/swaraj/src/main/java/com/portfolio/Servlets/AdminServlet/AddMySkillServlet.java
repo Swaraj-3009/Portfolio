@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import com.portfolio.Service.AdminService;
+import com.portfolio.model.Admin;
 import com.portfolio.model.MySkills;
 
 import jakarta.servlet.ServletException;
@@ -11,6 +12,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 @WebServlet("/admin/skill/addSkill")
 public class AddMySkillServlet extends HttpServlet{
@@ -36,7 +38,16 @@ public class AddMySkillServlet extends HttpServlet{
         }
 
         PrintWriter out = resp.getWriter();
-        if (adminSer.addMySkill(skill)) {
+        HttpSession session = req.getSession(false);
+
+        if (session == null || session.getAttribute("loggedInAdmin") == null) {
+            resp.sendRedirect(req.getContextPath() + "/login.html");
+            return;
+        }
+
+        Admin loggedInAdmin = (Admin) session.getAttribute("loggedInAdmin");
+
+        if (adminSer.addMySkill(loggedInAdmin, skill)) {
             resp.setStatus(201);
             out.println("Skill added successfully");
         } else {
