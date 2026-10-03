@@ -83,7 +83,35 @@ const renderAuth = () => {
   const logoutBtn = $("#logout-btn");
 
   if (loginBtn) loginBtn.addEventListener("click", openAuthModal);
-  if (logoutBtn) logoutBtn.addEventListener("click", () => { clearUser(); renderAuth(); });
+  if (logoutBtn) logoutBtn.addEventListener("click", () => { clearUser(); renderAuth(); updateDashboardVisibility(); });
+  updateDashboardVisibility();
+};
+
+const updateDashboardVisibility = () => {
+  const user = getStoredUser();
+  const dashboard = $("#dashboard");
+  const adminDashboard = $("#admin-dashboard");
+  const userDashboard = $("#user-dashboard");
+
+  if (!user) {
+    dashboard.hidden = true;
+    adminDashboard.hidden = true;
+    userDashboard.hidden = true;
+    return;
+  }
+
+  dashboard.hidden = false;
+  adminDashboard.hidden = user.role !== "admin";
+  userDashboard.hidden = user.role !== "user";
+
+  if (user.role === "admin") {
+    loadAdminProfileToForm();
+    loadAdminSkills();
+  }
+
+  if (user.role === "user") {
+    loadPublicAdminProfile();
+  }
 };
 
 const submitAuthRequest = async (endpoint, values, successText, user, isRegistration = false) => {
@@ -308,6 +336,187 @@ SITE.projects.forEach(p => {
   }
 });
 if (!mid.parentNode) list.appendChild(mid);
+
+const parseProfileFields = (markup) => {
+  const document = new DOMParser().parseFromString(markup, "text/html");
+  const fields = {
+    name: document.querySelector("h2")?.textContent.trim() || "",
+    email: "",
+    phone: "",
+    address: "",
+    githubURL: "",
+    linkedinURL: "",
+    aboutMe: "",
+    profileImage: ""
+  };
+
+  document.querySelectorAll("p").forEach((p) => {
+    const strong = p.querySelector("strong");
+    if (!strong) return;
+    const key = strong.textContent.replace(":", "").trim().toLowerCase();
+    const value = p.textContent.slice(strong.textContent.length).trim();
+    if (key === "email") fields.email = value;
+    if (key === "phone") fields.phone = value;
+    if (key === "address") fields.address = value;
+    if (key === "github") fields.githubURL = value;
+    if (key === "linkedin") fields.linkedinURL = value;
+    if (key === "about") fields.aboutMe = value;
+  });
+
+  const img = document.querySelector("img");
+  if (img) fields.profileImage = img.getAttribute("src") || "";
+  return fields;
+};
+
+const loadAdminProfileToForm = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/myProfile`, { headers: { Accept: "text/html" } });
+    if (!response.ok) return;
+    const fields = parseProfileFields(await response.text());
+    const form = $("#admin-profile-form");
+    if (!form) return;
+    form.elements.name.value = fields.name || "";
+    form.elements.email.value = fields.email || "";
+    form.elements.phone.value = fields.phone || "";
+    form.elements.address.value = fields.address || "";
+    form.elements.githubURL.value = fields.githubURL || "";
+    form.elements.linkedinURL.value = fields.linkedinURL || "";
+    form.elements.profileImage.value = fields.profileImage || "";
+    form.elements.aboutMe.value = fields.aboutMe || "";
+  } catch (error) {
+    return;
+  }
+};
+
+const loadPublicAdminProfile = async () => {
+  const box = $("#public-admin-profile");
+  if (!box) return;
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/myProfile`, { headers: { Accept: "text/html" } });
+    if (!response.ok) {
+      box.innerHTML = "<p>Profile not available.</p>";
+      return;
+    }
+    const profile = parseProfileFields(await response.text());
+    box.innerHTML = `
+      <div class="mini-profile">
+        <h4>${profile.name || "Admin"}</h4>
+        <p>${profile.email || "No email added"}</p>
+        <p>${profile.phone || "No phone added"}</p>
+        <p>${profile.address || "No address added"}</p>
+      </div>`;
+  } catch (error) {
+    box.innerHTML = "<p>Unable to load admin profile.</p>";
+  }
+};
+
+const loadAdminSkills = async () => {
+  const list = $("#admin-skills-list");
+  if (!list) return;
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/skill`, { credentials: "include" });
+    if (!response.ok) {
+      list.innerHTML = "<p>No skills found.</p>";
+      return;
+    }
+    const html = await response.text();
+    const temp = document.createElement("div");
+    temp.innerHTML = html;
+    const items = [...temp.querySelectorAll("p")].map(p => p.textContent.trim());
+    list.innerHTML = items.length
+      ? items.map(item => `<div class="mini-skill">${item}</div>`).join("")
+      : "<p>No skills found.</p>";
+  } catch (error) {
+    list.innerHTML = "<p>Unable to load skills.</p>";
+  }
+};
+
+const submitForm = async (url, formData, successMessage) => {
+  const response = await fetch(`${API_BASE_URL}${url}`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+    body: new URLSearchParams(formData)
+  });
+  const text = (await response.text()).trim();
+  if (!response.ok) {
+    throw new Error(text || `Request failed (${response.status})`);
+  }
+  return text || successMessage;
+};
+
+$("#admin-profile-form")?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const form = new FormData(event.currentTarget);
+  const values = Object.fromEntries(form.entries());
+  try {
+    const result = await submitForm("/admin/myProfile", values, "Profile updated");
+    alert(result);
+    loadAdminProfileToForm();
+  } catch (error) {
+    alert(error.message);
+  }
+});
+
+$("#add-skill-form")?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const form = new FormData(event.currentTarget);
+  const values = Object.fromEntries(form.entries());
+  const payload = {
+    skillName: values.skillName,
+    isCompleted: values.isCompleted === "true" ? "true" : "false"
+  };
+  try {
+    const result = await submitForm("/admin/skill/addSkill", payload, "Skill added");
+    alert(result);
+    event.currentTarget.reset();
+    loadAdminSkills();
+  } catch (error) {
+    alert(error.message);
+  }
+});
+
+$("#update-username-form")?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const form = new FormData(event.currentTarget);
+  try {
+    const result = await submitForm("/user/updateUsername", Object.fromEntries(form.entries()), "Username updated");
+    alert(result);
+    const user = getStoredUser();
+    if (user) {
+      user.name = form.get("username");
+      saveUser(user);
+      renderAuth();
+    }
+    event.currentTarget.reset();
+  } catch (error) {
+    alert(error.message);
+  }
+});
+
+$("#update-email-form")?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const form = new FormData(event.currentTarget);
+  try {
+    const result = await submitForm("/user/updateUserEmail", Object.fromEntries(form.entries()), "Email updated");
+    alert(result);
+    event.currentTarget.reset();
+  } catch (error) {
+    alert(error.message);
+  }
+});
+
+$("#update-password-form")?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const form = new FormData(event.currentTarget);
+  try {
+    const result = await submitForm("/user/updateUserPassword", Object.fromEntries(form.entries()), "Password updated");
+    alert(result);
+    event.currentTarget.reset();
+  } catch (error) {
+    alert(error.message);
+  }
+});
 
 renderAuth();
 
