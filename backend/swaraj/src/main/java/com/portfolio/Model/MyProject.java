@@ -1,6 +1,7 @@
 package com.portfolio.model;
 
 public class MyProject {
+    private int id;
     private String projectName;
     private String projectDescription;
     private String TechnologiesUsed;
@@ -9,18 +10,10 @@ public class MyProject {
     private String projectImage;
     private Boolean isCompleted;
 
-    //constructor
-    public MyProject(String projectName, String projectDescription, String TechnologiesUsed, String GithubURL, String LiveURL, String projectImage, Boolean isCompleted) {
-        this.projectName = projectName;
-        this.projectDescription = projectDescription;
-        this.TechnologiesUsed = TechnologiesUsed;
-        this.GithubURL = GithubURL;
-        this.LiveURL = LiveURL;
-        this.projectImage = projectImage;
-        this.isCompleted = isCompleted;
-    }
-
     //getters
+    public int getId(){
+        return id;
+    }
     public String getProjectName() {
         return projectName;
     }
@@ -45,6 +38,9 @@ public class MyProject {
 
 
     //setters
+    public void setId(int id){
+        this.id = id;
+    }
     public void setProjectName(String projectName) {
         this.projectName = projectName;
     }

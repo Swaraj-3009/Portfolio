@@ -1,22 +1,17 @@
 package com.portfolio.model;
 
 public class MyEducation {
+    private int id;
     private String degree;
     private String institution;
     private String yearofPassing;
     private String grade;
     private String description;
 
-    //constructor
-    public MyEducation(String degree, String institution, String yearofPassing, String grade, String description) {
-        this.degree = degree;
-        this.institution = institution;
-        this.yearofPassing = yearofPassing;
-        this.grade = grade;
-        this.description = description;
-    }
-
     //getters
+    public int getId(){
+        return id;
+    }
     public String getDegree() {
         return degree;
     }
@@ -34,6 +29,9 @@ public class MyEducation {
     }
 
     //setters
+    public void setId(int id){
+        this.id = id;
+    }
     public void setDegree(String degree) {
         this.degree = degree;
     }
