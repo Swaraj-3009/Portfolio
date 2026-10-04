@@ -1,4 +1,4 @@
-package com.portfolio.Servlets.AdminServlet;
+package com.portfolio.Servlets.BothServlet;
 
 import java.io.IOException;
 import java.util.List;
