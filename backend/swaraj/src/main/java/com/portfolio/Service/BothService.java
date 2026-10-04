@@ -8,7 +8,6 @@ import com.portfolio.DAO.SkillsDAO;
 import com.portfolio.DAO.DaoImpl.EducationDaoImpl;
 import com.portfolio.DAO.DaoImpl.MyProfileDaoImpl;
 import com.portfolio.DAO.DaoImpl.SkillsDaoImpl;
-import com.portfolio.model.Admin;
 import com.portfolio.model.MyEducation;
 import com.portfolio.model.MyProfile;
 import com.portfolio.model.MySkills;
@@ -25,15 +24,8 @@ public class BothService {
         return mySkillDao.getSkills();
     }
 
-    public MyEducation showMyEducation(Admin loggedInAdmin, MyEducation education) {
-        if (loggedInAdmin == null || loggedInAdmin.getUsername() == null || loggedInAdmin.getUsername().trim().isEmpty()) {
-            return null;
-        }
-        if (education == null || education.getId() <= 0) {
-            return null;
-        }
-
-        EducationDAO educationDao = new EducationDaoImpl();
-        return educationDao.getEducation(education.getId());
+    public List<MyEducation> showMyEducation() {
+        EducationDAO myEducation = new EducationDaoImpl();
+        return myEducation.getEducation();
     }
 }

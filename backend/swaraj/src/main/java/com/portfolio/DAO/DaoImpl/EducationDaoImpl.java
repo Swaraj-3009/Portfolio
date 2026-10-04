@@ -3,6 +3,8 @@ package com.portfolio.DAO.DaoImpl;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.portfolio.DAO.EducationDAO;
 import com.portfolio.config.DatabaseConnection;
@@ -35,29 +37,27 @@ public class EducationDaoImpl implements EducationDAO {
     }
 
     @Override
-    public MyEducation getEducation(int id) {
-        String sql = "SELECT * FROM my_education WHERE id = ?";
+    public List<MyEducation> getEducation() {
+        List<MyEducation> educations = new ArrayList<>();
+        String sql = "SELECT * FROM my_education";
 
         try(Connection con = DatabaseConnection.getConnection();
             PreparedStatement ps = con.prepareStatement(sql)){
-                ps.setInt(1, id);
 
                 try(ResultSet rs = ps.executeQuery()){
-                    if(rs.next()){
-                        MyEducation education = new MyEducation();
+                    while(rs.next()){
+                        MyEducation edu = new MyEducation();
 
-                        education.setId(rs.getInt("id"));
-                        education.setDegree(rs.getString("degree"));
-                        education.setInstitution(rs.getString("institution"));
-                        education.setYearofPassing(rs.getString("year_of_passing"));
-                        education.setGrade(rs.getString("grade"));
-                        education.setDescription(rs.getString("description"));
+                        edu.setId(rs.getInt("id"));
+                        edu.setDegree(rs.getString("degree"));
+                        edu.setInstitution(rs.getString("institution"));
+                        edu.setYearofPassing(rs.getString("year_of_passing"));
+                        edu.setGrade(rs.getString("grade"));
+                        edu.setDescription(rs.getString("description"));
 
-                        return education;
+                        educations.add(edu);
                     }
-                    else {
-                        return null;
-                    }
+                    return educations;
                 }
         }
         catch(Exception e){

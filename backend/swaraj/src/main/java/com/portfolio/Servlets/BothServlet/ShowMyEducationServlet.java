@@ -2,9 +2,9 @@ package com.portfolio.Servlets.BothServlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 
-import com.portfolio.Service.AdminService;
-import com.portfolio.model.Admin;
+import com.portfolio.Service.BothService;
 import com.portfolio.model.MyEducation;
 
 import jakarta.servlet.ServletException;
@@ -12,65 +12,44 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 
 @WebServlet("/admin/myEducation")
 public class ShowMyEducationServlet extends HttpServlet{
-    AdminService adminSer = new AdminService();
+    BothService bothSer = new BothService();
 
     @Override 
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
-        HttpSession session = req.getSession(false);
-        if (session == null || session.getAttribute("loggedInAdmin") == null) {
-            resp.sendRedirect(req.getContextPath() + "/login.html");
-            return;
-        }
-
-        Admin loggedInAdmin = (Admin) session.getAttribute("loggedInAdmin");
-        MyEducation education = new MyEducation();
-
-        String idParam = req.getParameter("id");
-        if (idParam != null && !idParam.trim().isEmpty()) {
-            try {
-                education.setId(Integer.parseInt(idParam));
-            } catch (NumberFormatException e) {
-                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                resp.getWriter().println("Invalid education id");
-                return;
-            }
-        }
-
-        MyEducation result = adminSer.showMyEducation(loggedInAdmin, education);
+        PrintWriter out = resp.getWriter();
+        List<MyEducation> educations = bothSer.showMyEducation();
 
         resp.setContentType("text/html");
         resp.setCharacterEncoding("UTF-8");
-        PrintWriter out = resp.getWriter();
+        
 
-        if (result == null) {
+        if (educations == null || educations.isEmpty()) {
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
             out.println("<h2>Education not found</h2>");
             return;
         }
 
         resp.setStatus(HttpServletResponse.SC_OK);
-        String html = """
-            <html>
-            <body>
-                <h2>Education Details</h2>
-                <p><strong>Degree:</strong> %s</p>
-                <p><strong>Institution:</strong> %s</p>
-                <p><strong>Year of Passing:</strong> %s</p>
-                <p><strong>Grade:</strong> %s</p>
-                <p><strong>Description:</strong> %s</p>
-            </body>
-            </html>
-            """.formatted(
-                result.getDegree() == null ? "" : result.getDegree(),
-                result.getInstitution() == null ? "" : result.getInstitution(),
-                result.getYearofPassing() == null ? "" : result.getYearofPassing(),
-                result.getGrade() == null ? "" : result.getGrade(),
-                result.getDescription() == null ? "" : result.getDescription()
-            );
+        StringBuilder html = new StringBuilder();
+        html.append("<html><body><h2>Education</h2>");
+
+        for (MyEducation education : educations) {
+            html.append("<p>")
+                .append("<strong>Degree:</strong> ")
+                .append(education.getDegree() == null ? "" : education.getDegree())
+                .append(" | <strong>Institution:</strong> ")
+                .append(education.getInstitution() == null ? "" : education.getInstitution())
+                .append(" | <strong>Year of Passing:</strong> ")
+                .append(education.getYearofPassing() == null ? "" : education.getYearofPassing())
+                .append(" | <strong>Grade:</strong> ")
+                .append(education.getGrade() == null ? "" : education.getGrade())
+                .append("</p>");
+        }
+
+        html.append("</body></html>");
         out.print(html);
     }
 }
