@@ -68,22 +68,58 @@ public class EducationDaoImpl implements EducationDAO {
 
     @Override
     public boolean updateEducation(MyEducation education) {
-        String sql = "UPDATE my_education SET degree = ?, institution = ?, year_of_passing = ?, grade = ?, description = ? WHERE id = ?";
+        if (education == null || education.getId() <= 0) {
+            return false;
+        }
+
+        StringBuilder sql = new StringBuilder("UPDATE my_education SET ");
+        List<String> fields = new ArrayList<>();
+        List<Object> values = new ArrayList<>();
+
+        if (education.getDegree() != null) {
+            fields.add("degree = ?");
+            values.add(education.getDegree());
+        }
+        if (education.getInstitution() != null) {
+            fields.add("institution = ?");
+            values.add(education.getInstitution());
+        }
+        if (education.getYearofPassing() != null) {
+            fields.add("year_of_passing = ?");
+            values.add(education.getYearofPassing());
+        }
+        if (education.getGrade() != null) {
+            fields.add("grade = ?");
+            values.add(education.getGrade());
+        }
+        if (education.getDescription() != null) {
+            fields.add("description = ?");
+            values.add(education.getDescription());
+        }
+
+        if (fields.isEmpty()) {
+            return false;
+        }
+
+        sql.append(String.join(", ", fields));
+        sql.append(" WHERE id = ?");
+        values.add(education.getId());
 
         try(Connection con = DatabaseConnection.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql)){
-                ps.setString(1, education.getDegree());
-                ps.setString(2, education.getInstitution());
-                ps.setString(3, education.getYearofPassing());
-                ps.setString(4, education.getGrade());
-                ps.setString(5, education.getDescription());
-                ps.setInt(6, education.getId());
+            PreparedStatement ps = con.prepareStatement(sql.toString())){
+                for (int i = 0; i < values.size(); i++) {
+                    Object value = values.get(i);
+                    if (value instanceof String) {
+                        ps.setString(i + 1, (String) value);
+                    } else if (value instanceof Integer) {
+                        ps.setInt(i + 1, (Integer) value);
+                    } else {
+                        ps.setObject(i + 1, value);
+                    }
+                }
 
                 int rows = ps.executeUpdate();
-
-                if(rows > 0){
-                    return true;
-                }
+                return rows > 0;
         }
         catch(Exception e){
             e.printStackTrace();

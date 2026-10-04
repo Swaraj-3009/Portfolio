@@ -1,10 +1,12 @@
 package com.portfolio.DAO;
 
+import java.util.List;
+
 import com.portfolio.model.MyProject;
 
 public interface ProjectsDAO {
-    public void addProject(MyProject project);
-    public MyProject getProject(String projectName);
-    public void updateProject(MyProject project);
-    public void deleteProject(MyProject project);
+    public boolean addProject(MyProject project);
+    public List<MyProject> getProject();
+    public boolean updateProject(MyProject project);
+    public boolean deleteProject(MyProject project);
 }
