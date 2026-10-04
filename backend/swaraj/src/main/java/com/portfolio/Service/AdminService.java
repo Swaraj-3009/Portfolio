@@ -1,11 +1,11 @@
 package com.portfolio.Service;
 
-import java.util.List;
-
 import com.portfolio.DAO.AdminDAO;
+import com.portfolio.DAO.EducationDAO;
 import com.portfolio.DAO.MyProfileDAO;
 import com.portfolio.DAO.SkillsDAO;
 import com.portfolio.DAO.DaoImpl.AdminDaoImpl;
+import com.portfolio.DAO.DaoImpl.EducationDaoImpl;
 import com.portfolio.DAO.DaoImpl.MyProfileDaoImpl;
 import com.portfolio.DAO.DaoImpl.SkillsDaoImpl;
 import com.portfolio.Exception.AdminNotFoundException;
@@ -66,17 +66,12 @@ public class AdminService {
         }
         return false;
     }
-    public MyProfile showProfile(){
-        MyProfileDAO myProfileDao = new MyProfileDaoImpl();
-        MyProfile myProfile = myProfileDao.getProfile();
-
-        return myProfile;
-    }
 
 
     //Skill
     public boolean addMySkill(Admin loggedInAdmin, MySkills skill){
         SkillsDAO skillsDao = new SkillsDaoImpl();
+
         if (loggedInAdmin == null || loggedInAdmin.getUsername() == null || loggedInAdmin.getUsername().trim().isEmpty()) {
             return false;
         }
@@ -87,6 +82,7 @@ public class AdminService {
     }
     public boolean updateMySkill(Admin loggedInAdmin, MySkills skill){
         SkillsDAO skillsDao = new SkillsDaoImpl();
+
         if (loggedInAdmin == null || loggedInAdmin.getUsername() == null || loggedInAdmin.getUsername().trim().isEmpty()) {
             return false;
         }
@@ -95,12 +91,9 @@ public class AdminService {
         }
         return skillsDao.updateSkills(skill);
     }
-    public List<MySkills> showMySkill(){
-        SkillsDAO mySkillDao = new SkillsDaoImpl();
-        return mySkillDao.getSkills();
-    }
     public boolean deleteMySkill(Admin loggedInAdmin, MySkills skill){
         SkillsDAO skillsDao = new SkillsDaoImpl();
+
         if (loggedInAdmin == null || loggedInAdmin.getUsername() == null || loggedInAdmin.getUsername().trim().isEmpty()) {
             return false;
         }
@@ -112,15 +105,27 @@ public class AdminService {
 
     //Education
     public boolean addMyEducation(Admin loggedInAdmin, MyEducation education){
+        EducationDAO educationDao = new EducationDaoImpl();
+
+        if (!(loggedInAdmin == null || loggedInAdmin.getUsername() == null || loggedInAdmin.getUsername().trim().isEmpty())) {
+            return educationDao.addEducation(education);
+        }
         return false;
     }
-    public MyEducation showMyEducation(Admin loggedInAdmin, MyEducation education){
-        return null;
-    }
     public boolean updateMyEducation(Admin loggedInAdmin, MyEducation education){
+        EducationDAO educationDao = new EducationDaoImpl();
+
+        if (!(loggedInAdmin == null || loggedInAdmin.getUsername() == null || loggedInAdmin.getUsername().trim().isEmpty())) {
+            return educationDao.updateEducation(education);
+        }
         return false;
     }
     public boolean deleteMyEducation(Admin loggedInAdmin, MyEducation education){
+        EducationDAO educationDao = new EducationDaoImpl();
+
+        if (!(loggedInAdmin == null || loggedInAdmin.getUsername() == null || loggedInAdmin.getUsername().trim().isEmpty())) {
+            return educationDao.deleteEducation(education);
+        }
         return false;
     }
 }

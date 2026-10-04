@@ -2,7 +2,7 @@ package com.portfolio.Servlets.BothServlet;
 
 import java.io.IOException;
 
-import com.portfolio.Service.AdminService;
+import com.portfolio.Service.BothService;
 import com.portfolio.model.MyProfile;
 
 import jakarta.servlet.ServletException;
@@ -13,11 +13,11 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @WebServlet("both/MyProfile")
 public class ShowMyProfileServlet extends HttpServlet {
-    AdminService adminSer = new AdminService();
+    BothService bothSer = new BothService();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
-        MyProfile profile = adminSer.showProfile();
+        MyProfile profile = bothSer.showProfile();
 
         resp.setContentType("text/html");
         resp.setCharacterEncoding("UTF-8");
