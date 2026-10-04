@@ -122,10 +122,31 @@
 </section>
 
 <section id="dashboard" class="wrap sec" hidden>
-  <h2>Account dashboard</h2>
+  <div class="dashboard-heading">
+    <div>
+      <p class="muted dashboard-kicker" id="dashboard-role">Portfolio workspace</p>
+      <h2 id="dashboard-title">Dashboard</h2>
+    </div>
+    <a class="btn" href="#top">Back to portfolio</a>
+  </div>
   <div class="dashboard-grid">
+    <div id="guest-dashboard" class="panel" hidden>
+      <h3>Guest access</h3>
+      <p class="dashboard-copy">Browse the portfolio and public profile. Sign in or create an account to manage your account settings.</p>
+      <div class="dashboard-actions">
+        <a class="btn primary" href="#projects">View projects</a>
+        <a class="btn" href="#skills">View skills</a>
+        <button id="guest-sign-in" class="btn" type="button">Sign in or register</button>
+      </div>
+      <div class="panel-section">
+        <h4>Public portfolio</h4>
+        <div id="guest-public-summary" class="mini-list"></div>
+      </div>
+    </div>
+
     <div id="admin-dashboard" class="panel" hidden>
-      <h3>Admin tools</h3>
+      <h3>Admin workspace</h3>
+      <p class="dashboard-copy">Manage the portfolio profile, skills, education, and projects.</p>
       <div class="panel-section">
         <h4>Update profile</h4>
         <form id="admin-profile-form" class="stack-form">
@@ -149,17 +170,79 @@
         </form>
       </div>
       <div class="panel-section">
-        <h4>Current skills</h4>
+        <h4>Update or remove skill</h4>
+        <form id="manage-skill-form" class="stack-form">
+          <input name="id" type="number" min="1" placeholder="Skill ID" required>
+          <select name="action" aria-label="Skill action">
+            <option value="update">Mark as in progress</option>
+            <option value="delete">Delete skill</option>
+          </select>
+          <button type="submit" class="btn">Apply skill change</button>
+        </form>
         <div id="admin-skills-list" class="mini-list"></div>
+      </div>
+      <div class="panel-section">
+        <h4>Add education</h4>
+        <form id="add-education-form" class="stack-form">
+          <input name="degree" type="text" placeholder="Degree" required>
+          <input name="institution" type="text" placeholder="Institution" required>
+          <input name="yearOfPassing" type="text" placeholder="Year of passing">
+          <input name="grade" type="text" placeholder="Grade">
+          <textarea name="description" rows="3" placeholder="Description"></textarea>
+          <button type="submit" class="btn primary">Add education</button>
+        </form>
+      </div>
+      <div class="panel-section">
+        <h4>Update or remove education</h4>
+        <form id="manage-education-form" class="stack-form">
+          <input name="id" type="number" min="1" placeholder="Education ID" required>
+          <select name="action" aria-label="Education action">
+            <option value="update">Update education</option>
+            <option value="delete">Delete education</option>
+          </select>
+          <input name="degree" type="text" placeholder="Degree">
+          <input name="institution" type="text" placeholder="Institution">
+          <input name="yearOfPassing" type="text" placeholder="Year of passing">
+          <input name="grade" type="text" placeholder="Grade">
+          <textarea name="description" rows="3" placeholder="Description"></textarea>
+          <button type="submit" class="btn">Apply education change</button>
+        </form>
+      </div>
+      <div class="panel-section">
+        <h4>Add project</h4>
+        <form id="add-project-form" class="stack-form">
+          <input name="id" type="number" min="1" placeholder="Project ID" required>
+          <input name="projectName" type="text" placeholder="Project name" required>
+          <textarea name="projectDescription" rows="3" placeholder="Description"></textarea>
+          <input name="technologiesUsed" type="text" placeholder="Technologies used">
+          <input name="githubUrl" type="url" placeholder="GitHub URL">
+          <input name="liveUrl" type="url" placeholder="Live URL">
+          <label class="check-row"><input type="checkbox" name="isCompleted" value="true"> Completed</label>
+          <button type="submit" class="btn primary">Add project</button>
+        </form>
+      </div>
+      <div class="panel-section">
+        <h4>Update or remove project</h4>
+        <form id="manage-project-form" class="stack-form">
+          <input name="id" type="number" min="1" placeholder="Project ID" required>
+          <select name="action" aria-label="Project action">
+            <option value="update">Update project</option>
+            <option value="delete">Delete project</option>
+          </select>
+          <input name="projectName" type="text" placeholder="Project name">
+          <textarea name="projectDescription" rows="3" placeholder="Description"></textarea>
+          <input name="technologiesUsed" type="text" placeholder="Technologies used">
+          <input name="githubUrl" type="url" placeholder="GitHub URL">
+          <input name="liveUrl" type="url" placeholder="Live URL">
+          <label class="check-row"><input type="checkbox" name="isCompleted" value="true"> Completed</label>
+          <button type="submit" class="btn">Apply project change</button>
+        </form>
       </div>
     </div>
 
     <div id="user-dashboard" class="panel" hidden>
-      <h3>User tools</h3>
-      <div class="panel-section">
-        <h4>Admin profile</h4>
-        <div id="public-admin-profile" class="mini-card"></div>
-      </div>
+      <h3>User account</h3>
+      <p class="dashboard-copy">Update your account details. Your portfolio browsing access is shared with guests.</p>
       <div class="panel-section">
         <h4>Update username</h4>
         <form id="update-username-form" class="stack-form">
@@ -182,6 +265,16 @@
           <input name="password" type="password" placeholder="New password" required>
           <button type="submit" class="btn primary">Update password</button>
         </form>
+      </div>
+      <div class="panel-section">
+        <h4>Public portfolio</h4>
+        <div class="dashboard-actions">
+          <a class="btn" href="#projects">Projects</a>
+          <a class="btn" href="#skills">Skills</a>
+          <a class="btn" href="#education">Education</a>
+          <a class="btn" href="#contact">Contact</a>
+        </div>
+        <div id="public-admin-profile" class="mini-card"></div>
       </div>
     </div>
   </div>

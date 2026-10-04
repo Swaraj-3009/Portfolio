@@ -90,19 +90,31 @@ const renderAuth = () => {
 const updateDashboardVisibility = () => {
   const user = getStoredUser();
   const dashboard = $("#dashboard");
+  const guestDashboard = $("#guest-dashboard");
   const adminDashboard = $("#admin-dashboard");
   const userDashboard = $("#user-dashboard");
 
   if (!user) {
     dashboard.hidden = true;
+    guestDashboard.hidden = true;
     adminDashboard.hidden = true;
     userDashboard.hidden = true;
     return;
   }
 
   dashboard.hidden = false;
+  guestDashboard.hidden = user.role !== "guest";
   adminDashboard.hidden = user.role !== "admin";
   userDashboard.hidden = user.role !== "user";
+  $("#dashboard-role").textContent = user.role === "admin" ? "Administrator" : user.role === "user" ? "Signed-in user" : "Guest view";
+  $("#dashboard-title").textContent = user.role === "admin"
+    ? "Portfolio administration"
+    : `Welcome, ${user.name.split(" ")[0]}`;
+  $("#guest-public-summary").innerHTML = `
+    <a class="mini-skill" href="#about">About the developer</a>
+    <a class="mini-skill" href="#skills">Skills and learning path</a>
+    <a class="mini-skill" href="#projects">Projects and education</a>
+    <a class="mini-skill" href="#contact">Contact details</a>`;
 
   if (user.role === "admin") {
     loadAdminProfileToForm();
@@ -113,6 +125,8 @@ const updateDashboardVisibility = () => {
     loadPublicAdminProfile();
   }
 };
+
+$("#guest-sign-in").addEventListener("click", openAuthModal);
 
 const submitAuthRequest = async (endpoint, values, successText, user, isRegistration = false) => {
   authMessage.classList.remove("error");
@@ -295,7 +309,7 @@ const applyProfile = (profile) => {
 
 const loadProfile = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/myProfile`, { headers: { Accept: "text/html" } });
+    const response = await fetch(`${API_BASE_URL}/both/MyProfile`, { headers: { Accept: "text/html" } });
     if (response.ok) applyProfile(parseProfileHtml(await response.text()));
   } catch {}
 };
@@ -370,7 +384,7 @@ const parseProfileFields = (markup) => {
 
 const loadAdminProfileToForm = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/myProfile`, { headers: { Accept: "text/html" } });
+    const response = await fetch(`${API_BASE_URL}/both/MyProfile`, { headers: { Accept: "text/html" } });
     if (!response.ok) return;
     const fields = parseProfileFields(await response.text());
     const form = $("#admin-profile-form");
@@ -392,7 +406,7 @@ const loadPublicAdminProfile = async () => {
   const box = $("#public-admin-profile");
   if (!box) return;
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/myProfile`, { headers: { Accept: "text/html" } });
+    const response = await fetch(`${API_BASE_URL}/both/MyProfile`, { headers: { Accept: "text/html" } });
     if (!response.ok) {
       box.innerHTML = "<p>Profile not available.</p>";
       return;
@@ -450,7 +464,7 @@ $("#admin-profile-form")?.addEventListener("submit", async (event) => {
   const form = new FormData(event.currentTarget);
   const values = Object.fromEntries(form.entries());
   try {
-    const result = await submitForm("/admin/myProfile", values, "Profile updated");
+    const result = await submitForm("/admin/myProfile/updateMyProfile", values, "Profile updated");
     alert(result);
     loadAdminProfileToForm();
   } catch (error) {
@@ -475,6 +489,51 @@ $("#add-skill-form")?.addEventListener("submit", async (event) => {
     alert(error.message);
   }
 });
+
+const bindAdminForm = (formId, routes, successText) => {
+  $(formId)?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const values = Object.fromEntries(new FormData(form).entries());
+    const action = values.action;
+    delete values.action;
+    Object.keys(values).forEach((key) => {
+      if (values[key] === "") delete values[key];
+    });
+
+    if (formId === "#add-project-form" && values.isCompleted === undefined) {
+      values.isCompleted = "false";
+    }
+
+    try {
+      const result = await submitForm(routes[action || "add"], values, successText);
+      alert(result);
+      form.reset();
+      loadAdminSkills();
+    } catch (error) {
+      alert(error.message);
+    }
+  });
+};
+
+bindAdminForm("#manage-skill-form", {
+  update: "/admin/skill/updateSkill",
+  delete: "/admin/skill/DeleteSkill"
+}, "Skill updated");
+bindAdminForm("#add-education-form", {
+  add: "/admin/myEducation/AddEducation"
+}, "Education added");
+bindAdminForm("#manage-education-form", {
+  update: "/admin/myEducation/updateEducation",
+  delete: "/admin/myEducation/deleteEducation"
+}, "Education updated");
+bindAdminForm("#add-project-form", {
+  add: "/admin/myProject/addMyProject"
+}, "Project added");
+bindAdminForm("#manage-project-form", {
+  update: "/admin/myProject/updateMyProject",
+  delete: "/admin/myProject/deleteMyProject"
+}, "Project updated");
 
 $("#update-username-form")?.addEventListener("submit", async (event) => {
   event.preventDefault();
