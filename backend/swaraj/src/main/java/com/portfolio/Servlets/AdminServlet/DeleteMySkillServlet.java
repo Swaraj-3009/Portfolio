@@ -22,25 +22,19 @@ public class DeleteMySkillServlet extends HttpServlet{
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
         MySkills skill = new MySkills();
         PrintWriter out = resp.getWriter();
-    
-        skill.setId(Integer.parseInt(req.getParameter("id")));
-        
+
         HttpSession session = req.getSession(false);
-
-        if (session == null || session.getAttribute("loggedInAdmin") == null) {
-            resp.sendRedirect(req.getContextPath() + "/login.html");
-            return;
-        }
-
         Admin loggedInAdmin = (Admin) session.getAttribute("loggedInAdmin");
 
+        skill.setId(Integer.parseInt(req.getParameter("id")));
+
         if(adminSer.deleteMySkill(loggedInAdmin, skill)){
-            resp.setStatus(201);
-            out.println("Skill Deleted Successfully");
+            resp.setStatus(200);
+            out.write("Education deleted");
         }
         else{
             resp.setStatus(500);
-            out.println("Skill Deleted Successfully");
+            out.write("Education not deleted");
         }
     }
 }

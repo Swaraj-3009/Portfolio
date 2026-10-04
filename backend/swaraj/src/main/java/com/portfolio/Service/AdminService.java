@@ -10,6 +10,7 @@ import com.portfolio.DAO.DaoImpl.MyProfileDaoImpl;
 import com.portfolio.DAO.DaoImpl.SkillsDaoImpl;
 import com.portfolio.Exception.AdminNotFoundException;
 import com.portfolio.model.Admin;
+import com.portfolio.model.MyEducation;
 import com.portfolio.model.MyProfile;
 import com.portfolio.model.MySkills;
 
@@ -107,5 +108,19 @@ public class AdminService {
             return false;
         }
         return skillsDao.deleteSkills(skill);
+    }
+
+    //Education
+    public boolean addMyEducation(Admin loggedInAdmin, MyEducation education){
+        return false;
+    }
+    public MyEducation showMyEducation(Admin loggedInAdmin, MyEducation education){
+        return null;
+    }
+    public boolean updateMyEducation(Admin loggedInAdmin, MyEducation education){
+        return false;
+    }
+    public boolean deleteMyEducation(Admin loggedInAdmin, MyEducation education){
+        return false;
     }
 }

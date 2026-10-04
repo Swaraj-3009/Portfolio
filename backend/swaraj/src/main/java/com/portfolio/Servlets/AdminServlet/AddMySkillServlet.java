@@ -20,14 +20,17 @@ public class AddMySkillServlet extends HttpServlet{
 
     @Override 
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
+        MySkills skill = new MySkills();
+        PrintWriter out = resp.getWriter();
+
+        HttpSession session = req.getSession(false);
+
         String skillName = req.getParameter("skillName");
         if (skillName == null || skillName.trim().isEmpty()) {
             resp.setStatus(400);
             resp.getWriter().println("Skill name is required");
             return;
         }
-
-        MySkills skill = new MySkills();
         skill.setSkillName(skillName.trim());
 
         String completedParam = req.getParameter("isCompleted");
@@ -36,9 +39,6 @@ public class AddMySkillServlet extends HttpServlet{
         } else {
             skill.setIsCompleted(false);
         }
-
-        PrintWriter out = resp.getWriter();
-        HttpSession session = req.getSession(false);
 
         if (session == null || session.getAttribute("loggedInAdmin") == null) {
             resp.sendRedirect(req.getContextPath() + "/login.html");

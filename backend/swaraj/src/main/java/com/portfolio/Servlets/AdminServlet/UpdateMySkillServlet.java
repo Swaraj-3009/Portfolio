@@ -20,36 +20,16 @@ public class UpdateMySkillServlet extends HttpServlet{
 
     @Override 
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
-        String skillName = req.getParameter("skillName");
-
-        if(skillName == null || skillName.trim().isEmpty()) {
-            resp.setStatus(400);
-            resp.getWriter().println("Skill name is required");
-            return;
-        }
-
         MySkills skill = new MySkills();
-        skill.setSkillName(skillName.trim());
-
-        String completedParam = req.getParameter("isCompleted");
-        if(completedParam != null) {
-            skill.setIsCompleted(Boolean.parseBoolean(completedParam));
-        } else {
-            skill.setIsCompleted(false);
-        }
-
         PrintWriter out = resp.getWriter();
+
         HttpSession session = req.getSession(false);
-
-        if (session == null || session.getAttribute("loggedInAdmin") == null) {
-            resp.sendRedirect(req.getContextPath() + "/login.html");
-            return;
-        }
-
         Admin loggedInAdmin = (Admin) session.getAttribute("loggedInAdmin");
 
+        skill.setId(Integer.parseInt(req.getParameter("id")));
+
         if(adminSer.updateMySkill(loggedInAdmin, skill)) {
-            resp.setStatus(201);
+            resp.setStatus(200);
             out.println("Skill Updated successfully");
         } else {
             resp.setStatus(500);
