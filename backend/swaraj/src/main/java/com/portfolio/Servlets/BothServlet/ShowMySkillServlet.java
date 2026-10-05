@@ -34,7 +34,9 @@ public class ShowMySkillServlet extends HttpServlet {
         html.append("<html><body><h2>Skills</h2>");
 
         for (MySkills skill : skills) {
-            html.append("<p><strong>Name:</strong> ")
+            html.append("<p><strong>ID:</strong> ")
+                .append(skill.getId())
+                .append(" | <strong>Name:</strong> ")
                 .append(skill.getSkillName() == null ? "" : skill.getSkillName())
                 .append(" | <strong>Status:</strong> ")
                 .append(Boolean.TRUE.equals(skill.getIsCompleted()) ? "Completed" : "Not Completed")

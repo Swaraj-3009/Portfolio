@@ -7,7 +7,6 @@ import com.portfolio.model.Admin;
 import com.portfolio.model.MyProfile;
 
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -42,8 +41,9 @@ public class MyProfileServlet extends HttpServlet {
 
         if(adminSer.UpdateAdminProfile(loggedInAdmin, profile)){
             resp.setStatus(HttpServletResponse.SC_OK);
-            RequestDispatcher rd = req.getRequestDispatcher("AdminDashboard.html");
-            rd.forward(req, resp);
+            resp.setContentType("text/plain");
+            resp.setCharacterEncoding("UTF-8");
+            resp.getWriter().write("Profile updated");
         } else {
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Profile update failed");
         }

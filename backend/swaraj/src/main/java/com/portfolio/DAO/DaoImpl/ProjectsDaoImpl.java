@@ -69,7 +69,7 @@ public class ProjectsDaoImpl implements ProjectsDAO {
 
     @Override
     public boolean updateProject(MyProject project) {
-        String sql = "UPDATE my_projects SET project_name = ?, project_description = ?, technologies_used = ?, github_url = ?, live_url = ?, project_image = ?, is_completed = ? WHERE id = ?";
+        String sql = "UPDATE my_projects SET project_name = COALESCE(?, project_name), project_description = COALESCE(?, project_description), technologies_used = COALESCE(?, technologies_used), github_url = COALESCE(?, github_url), live_url = COALESCE(?, live_url), project_image = COALESCE(?, project_image), is_completed = COALESCE(?, is_completed) WHERE id = ?";
 
         try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -80,7 +80,7 @@ public class ProjectsDaoImpl implements ProjectsDAO {
             ps.setString(4, project.getGithubURL());
             ps.setString(5, project.getLiveURL());
             ps.setString(6, project.getProjectImage());
-            ps.setBoolean(7, Boolean.TRUE.equals(project.getIsCompleted()));
+            ps.setObject(7, project.getIsCompleted());
             ps.setInt(8, project.getId());
 
             int rows = ps.executeUpdate();

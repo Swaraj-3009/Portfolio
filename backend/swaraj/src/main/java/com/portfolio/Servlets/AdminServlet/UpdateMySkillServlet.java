@@ -24,9 +24,12 @@ public class UpdateMySkillServlet extends HttpServlet{
         PrintWriter out = resp.getWriter();
 
         HttpSession session = req.getSession(false);
-        Admin loggedInAdmin = (Admin) session.getAttribute("loggedInAdmin");
+        Admin loggedInAdmin = session == null ? null : (Admin) session.getAttribute("loggedInAdmin");
 
         skill.setId(Integer.parseInt(req.getParameter("id")));
+        skill.setSkillName(req.getParameter("skillName"));
+        String completed = req.getParameter("isCompleted");
+        skill.setIsCompleted(completed == null ? null : Boolean.valueOf(completed));
 
         if(adminSer.updateMySkill(loggedInAdmin, skill)) {
             resp.setStatus(200);

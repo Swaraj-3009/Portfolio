@@ -38,6 +38,9 @@ public class ShowMyProjectServlet extends HttpServlet {
 
         for (MyProject project : projects) {
             html.append("<p>")
+                .append("<strong>ID:</strong> ")
+                .append(project.getId())
+                .append(" | ")
                 .append("<strong>Project:</strong> ")
                 .append(project.getProjectName() == null ? "" : project.getProjectName())
                 .append(" | <strong>Description:</strong> ")

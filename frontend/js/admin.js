@@ -5,13 +5,13 @@ const panel = $("#panel");
 /* Endpoints and field names are the ones your servlets already use.
    Field = [name, label, type, required]  (type: text | url | area | check) */
 const SECTIONS = {
-  education: { single: "education", updLabel: "Update education", bool: false,
+  education: { single: "education", updLabel: "Update education", list: "/admin/myEducation", bool: false,
     add: "/admin/myEducation/AddEducation", upd: "/admin/myEducation/updateEducation", del: "/admin/myEducation/deleteEducation",
     fields: [["degree", "Degree", "text", 1], ["institution", "Institution", "text", 1], ["yearOfPassing", "Year of passing"], ["grade", "Grade"], ["description", "Description", "area"]] },
-  skills: { single: "skill", updLabel: "Mark as in progress", bool: true, list: true,
+  skills: { single: "skill", updLabel: "Update skill", bool: true, list: "/admin/skill",
     add: "/admin/skill/addSkill", upd: "/admin/skill/updateSkill", del: "/admin/skill/DeleteSkill",
-    fields: [["skillName", "Skill name", "text", 1], ["isCompleted", "Completed", "check"]], updFields: [] },
-  projects: { single: "project", updLabel: "Update project", bool: true,
+    fields: [["skillName", "Skill name", "text", 1], ["isCompleted", "Completed", "check"]] },
+  projects: { single: "project", updLabel: "Update project", bool: true, list: "/admin/myProject",
     add: "/admin/myProject/addMyProject", upd: "/admin/myProject/updateMyProject", del: "/admin/myProject/deleteMyProject",
     fields: [["projectName", "Project name", "text", 1], ["projectDescription", "Description", "area"], ["technologiesUsed", "Technologies used"], ["githubUrl", "GitHub URL", "url"], ["liveUrl", "Live URL", "url"], ["isCompleted", "Completed", "check"]] }
 };
@@ -85,25 +85,27 @@ function manageTab(key) {
     e.preventDefault();
     const v = strip(Object.fromEntries(new FormData(e.target).entries()));
     if (c.bool && !v.isCompleted) v.isCompleted = "false";
-    try { setStatus(await submit(c.add, v, `${c.single} added`)); e.target.reset(); c.list && loadSkills(); }
+    try { setStatus(await submit(c.add, v, `${c.single} added`)); e.target.reset(); c.list && loadItems(key); }
     catch (err) { setStatus(err.message, true); }
   };
   manf.onsubmit = async (e) => {
     e.preventDefault();
     const { action, ...v } = strip(Object.fromEntries(new FormData(manf).entries()));
-    try { setStatus(await submit(action === "del" ? c.del : c.upd, v, action === "del" ? `${c.single} deleted` : `${c.single} updated`)); manf.reset(); c.list && loadSkills(); }
+    if (c.bool && action !== "del" && v.isCompleted === undefined) v.isCompleted = "false";
+    try { setStatus(await submit(action === "del" ? c.del : c.upd, v, action === "del" ? `${c.single} deleted` : `${c.single} updated`)); manf.reset(); c.list && loadItems(key); }
     catch (err) { setStatus(err.message, true); }
   };
-  c.list && loadSkills();
+  c.list && loadItems(key);
 }
 
-async function loadSkills() {
+async function loadItems(key) {
   const list = $("#list"); if (!list) return;
   try {
-    const res = await fetch(`${API_BASE_URL}/admin/skill`, { credentials: "include" });
-    if (!res.ok) { list.innerHTML = `<p class="muted">No skills found.</p>`; return; }
+    const section = SECTIONS[key];
+    const res = await fetch(`${API_BASE_URL}${section.list}`, { cache: "no-store", credentials: "include" });
+    if (!res.ok) { list.innerHTML = `<p class="muted">No ${esc(section.single)} records found.</p>`; return; }
     const tmp = document.createElement("div"); tmp.innerHTML = await res.text();
     const items = [...tmp.querySelectorAll("p")].map((p) => p.textContent.trim()).filter(Boolean);
-    list.innerHTML = items.length ? items.map((t) => `<div class="mini-skill">${esc(t)}</div>`).join("") : `<p class="muted">No skills found.</p>`;
-  } catch { list.innerHTML = `<p class="muted">Unable to load skills.</p>`; }
+    list.innerHTML = items.length ? items.map((t) => `<div class="mini-skill">${esc(t)}</div>`).join("") : `<p class="muted">No ${esc(section.single)} records found.</p>`;
+  } catch { list.innerHTML = `<p class="muted">Unable to load ${esc(SECTIONS[key].single)} records.</p>`; }
 }

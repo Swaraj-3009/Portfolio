@@ -67,12 +67,13 @@ public class SkillsDaoImpl implements SkillsDAO {
 
     @Override
     public boolean updateSkills(MySkills skills) {
-        String sql = "UPDATE my_skills SET is_completed = ? WHERE id = ?";
+        String sql = "UPDATE my_skills SET skill_name = COALESCE(?, skill_name), is_completed = COALESCE(?, is_completed) WHERE id = ?";
 
         try(Connection con = DatabaseConnection.getConnection();
             PreparedStatement ps = con.prepareStatement(sql)){
-                ps.setBoolean(1, skills.getIsCompleted());
-                ps.setInt(2, skills.getId());
+                ps.setString(1, skills.getSkillName());
+                ps.setObject(2, skills.getIsCompleted());
+                ps.setInt(3, skills.getId());
 
                 int rows = ps.executeUpdate();
                 if(rows > 0){

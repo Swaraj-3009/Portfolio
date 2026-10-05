@@ -56,7 +56,7 @@ function parseProfile(markup) {
   return p;
 }
 async function fetchProfile() {
-  const res = await fetch(`${API_BASE_URL}/both/MyProfile`, { headers: { Accept: "text/html" } });
+  const res = await fetch(`${API_BASE_URL}/both/MyProfile`, { cache: "no-store", headers: { Accept: "text/html" } });
   if (!res.ok) throw new Error("Profile not available.");
   return parseProfile(await res.text());
 }

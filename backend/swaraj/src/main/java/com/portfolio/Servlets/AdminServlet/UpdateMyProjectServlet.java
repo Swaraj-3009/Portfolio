@@ -22,8 +22,8 @@ public class UpdateMyProjectServlet extends HttpServlet{
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
         MyProject project = new MyProject();
         PrintWriter out = resp.getWriter();
-        HttpSession session = req.getSession();
-        Admin loggedInAdmin = (Admin) session.getAttribute("loggedInAdmin");
+        HttpSession session = req.getSession(false);
+        Admin loggedInAdmin = session == null ? null : (Admin) session.getAttribute("loggedInAdmin");
 
         project.setId(Integer.parseInt(req.getParameter("id")));
         project.setProjectName(req.getParameter("projectName"));
@@ -33,9 +33,9 @@ public class UpdateMyProjectServlet extends HttpServlet{
         project.setLiveURL(req.getParameter("liveUrl"));
         project.setIsCompleted(Boolean.parseBoolean(req.getParameter("isCompleted")));
 
-        if(adminSer.addProject(loggedInAdmin, project)){
-            resp.setStatus(201);
-            out.write("Project Added");
+        if(adminSer.updateProject(loggedInAdmin, project)){
+            resp.setStatus(HttpServletResponse.SC_OK);
+            out.write("Project updated");
         }
         else{
             resp.setStatus(500);

@@ -38,6 +38,9 @@ public class ShowMyEducationServlet extends HttpServlet{
 
         for (MyEducation education : educations) {
             html.append("<p>")
+                .append("<strong>ID:</strong> ")
+                .append(education.getId())
+                .append(" | ")
                 .append("<strong>Degree:</strong> ")
                 .append(education.getDegree() == null ? "" : education.getDegree())
                 .append(" | <strong>Institution:</strong> ")
@@ -46,6 +49,8 @@ public class ShowMyEducationServlet extends HttpServlet{
                 .append(education.getYearofPassing() == null ? "" : education.getYearofPassing())
                 .append(" | <strong>Grade:</strong> ")
                 .append(education.getGrade() == null ? "" : education.getGrade())
+                .append(" | <strong>Description:</strong> ")
+                .append(education.getDescription() == null ? "" : education.getDescription())
                 .append("</p>");
         }
 
