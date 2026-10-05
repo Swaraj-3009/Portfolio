@@ -18,22 +18,44 @@ import jakarta.servlet.http.HttpSession;
 public class DeleteMyProjectServlet extends HttpServlet {
     AdminService adminSer = new AdminService();
 
+    public static Integer parseRequiredId(String rawValue) {
+        if (rawValue == null) {
+            return null;
+        }
+        String trimmed = rawValue.trim();
+        if (trimmed.isEmpty()) {
+            return null;
+        }
+        try {
+            return Integer.parseInt(trimmed);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
     @Override 
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
         MyProject project = new MyProject();
         PrintWriter out = resp.getWriter();
-        HttpSession session = req.getSession();
-        Admin loggedInAdmin = (Admin) session.getAttribute("loggedInAdmin");
+        HttpSession session = req.getSession(false);
+        Admin loggedInAdmin = session == null ? null : (Admin) session.getAttribute("loggedInAdmin");
 
-        project.setId(Integer.parseInt(req.getParameter("id")));
+        Integer id = parseRequiredId(req.getParameter("id"));
+        if (id == null) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            out.write("Project id is required");
+            return;
+        }
 
-        if(adminSer.addProject(loggedInAdmin, project)){
-            resp.setStatus(201);
-            out.write("Project Added");
+        project.setId(id);
+
+        if(adminSer.deleteProject(loggedInAdmin, project)){
+            resp.setStatus(HttpServletResponse.SC_OK);
+            out.write("Project deleted");
         }
         else{
             resp.setStatus(500);
-            out.write("Project Not Added");
+            out.write("Project Not Deleted");
         }
     }
 }
