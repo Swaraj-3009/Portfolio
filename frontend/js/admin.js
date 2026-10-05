@@ -10,7 +10,7 @@
     contact: [["email", "Email", "email"], ["phone", "Phone", "tel"], ["address", "Location"], ["githubURL", "GitHub URL", "url"], ["linkedinURL", "LinkedIn URL", "url"]]
   };
   const collections = {
-    skills: { label: "skill", list: "/admin/skill", add: "/admin/skill/addSkill", update: "/admin/skill/updateSkill", remove: "/admin/skill/DeleteSkill", fields: [["skillName", "Skill name", "text", true], ["isCompleted", "Currently learning", "check"]] },
+    skills: { label: "skill", list: "/admin/skill", add: "/admin/skill/addSkill", update: "/admin/skill/updateSkill", remove: "/admin/skill/DeleteSkill", fields: [["skillName", "Skill name", "text", true], ["isCompleted", "Completed", "check"]] },
     projects: { label: "project", list: "/admin/myProject", add: "/admin/myProject/addMyProject", update: "/admin/myProject/updateMyProject", remove: "/admin/myProject/deleteMyProject", fields: [["projectName", "Project name", "text", true], ["projectDescription", "Description", "area"], ["technologiesUsed", "Technologies", "text"], ["githubUrl", "GitHub URL", "url"], ["liveUrl", "Live URL", "url"], ["isCompleted", "Completed", "check"]] },
     education: { label: "education", list: "/admin/myEducation", add: "/admin/myEducation/AddEducation", update: "/admin/myEducation/updateEducation", remove: "/admin/myEducation/deleteEducation", fields: [["degree", "Degree or qualification", "text", true], ["institution", "Institution", "text", true], ["yearOfPassing", "Year of passing", "text"], ["grade", "Grade", "text"], ["description", "Description", "area"]] }
   };
@@ -25,8 +25,11 @@
     addSectionAction("about", "Edit about", "profile-edit", "about");
     addSectionAction("contact", "Edit contact", "profile-edit", "contact");
     addSectionAction("skills", "+ Add skill", "record-add", "skills", true);
+    addSectionAction("skills", "Arrange", "arrange", "skills");
     addSectionAction("projects", "+ Add project", "record-add", "projects", true);
+    addSectionAction("projects", "Arrange", "arrange", "projects");
     addSectionAction("education", "+ Add education", "record-add", "education", true);
+    addSectionAction("education", "Arrange", "arrange", "education");
     const dashboardLink = document.querySelector("#dash-link");
     if (dashboardLink) dashboardLink.textContent = "Editing portfolio";
     const nav = document.querySelector("#nav-links");
@@ -73,18 +76,25 @@
     const section = document.querySelector(`#${id}`);
     const heading = section?.querySelector("h2");
     if (!section || !heading) return;
-    const titleRow = html("div", "portfolio-section-heading");
-    heading.parentNode.insertBefore(titleRow, heading);
-    titleRow.appendChild(heading);
+    let titleRow = heading.closest(".portfolio-section-heading");
+    if (!titleRow) {
+      titleRow = html("div", "portfolio-section-heading");
+      heading.parentNode.insertBefore(titleRow, heading);
+      titleRow.appendChild(heading);
+    }
     const actions = html("div", "portfolio-section-actions");
     actions.appendChild(actionButton(label, type, value, primary));
-    titleRow.appendChild(actions);
+    const existingActions = titleRow.querySelector(".portfolio-section-actions");
+    if (existingActions) existingActions.append(...actions.childNodes);
+    else titleRow.appendChild(actions);
   }
 
   function renderSection(key, items) {
     if (!Object.hasOwn(collectionValues, key)) return;
     collectionValues[key] = items;
     const section = document.querySelector(`#${key}`);
+    const arrangeButton = section?.querySelector("[data-arrange]");
+    if (arrangeButton) arrangeButton.disabled = items.length < 2;
     const cards = key === "skills" ? [...section.querySelectorAll("#skills-grid li")] : key === "projects" ? [...section.querySelectorAll("#projects-list .proj")] : [...section.querySelectorAll("#education-list .edu")];
     items.forEach((item, index) => {
       const card = cards[index];
@@ -142,9 +152,16 @@
     if (!button) return;
     if (button.hasAttribute("data-profile-edit")) return openProfileEditor(button.dataset.profileEdit);
     if (button.hasAttribute("data-record-add")) return openRecordEditor(button.dataset.recordAdd, null);
+    if (button.hasAttribute("data-arrange")) return openOrderEditor(button.dataset.arrange);
+    if (button.hasAttribute("data-move")) return moveOrderItem(button);
     if (button.hasAttribute("data-edit")) return openRecordEditor(button.dataset.edit, button.dataset.id);
     if (button.hasAttribute("data-delete")) return deleteRecord(button.dataset.delete, button.dataset.id, button);
     if (button.hasAttribute("data-editor-cancel")) {
+      const editor = button.closest(".portfolio-editor");
+      editor.hidden = true;
+      editor.replaceChildren();
+    }
+    if (button.hasAttribute("data-order-cancel")) {
       const editor = button.closest(".portfolio-editor");
       editor.hidden = true;
       editor.replaceChildren();
@@ -167,6 +184,73 @@
       { recordForm: key, mode: entry ? "edit" : "add", id: entry?.id || "" });
     editor.scrollIntoView({ behavior: "smooth", block: "nearest" });
     form.querySelector("input,textarea")?.focus({ preventScroll: true });
+  }
+
+  function openOrderEditor(key) {
+    const editor = document.querySelector(`#${key}-editor`);
+    const items = collectionValues[key];
+    if (items.length < 2) return setStatus(`Add at least two ${collections[key].label} entries to arrange them.`, true);
+    const form = html("form", "portfolio-order-form");
+    form.dataset.section = key;
+    const heading = html("div", "portfolio-editor-title");
+    heading.appendChild(html("h3", "", `Arrange ${key}`));
+    const cancelTop = actionButton("×", "order-cancel", "");
+    cancelTop.classList.add("portfolio-editor-close");
+    cancelTop.setAttribute("aria-label", "Close ordering menu");
+    heading.appendChild(cancelTop);
+    form.appendChild(heading);
+    const list = html("ol", "portfolio-order-list");
+    items.forEach((item, index) => {
+      const row = html("li", "portfolio-order-item");
+      row.dataset.orderId = item.id;
+      row.appendChild(html("span", "", getRecordLabel(key, item)));
+      const moves = html("div", "portfolio-order-moves");
+      const up = actionButton("Move up", "move", "up");
+      const down = actionButton("Move down", "move", "down");
+      up.dataset.id = item.id;
+      down.dataset.id = item.id;
+      moves.append(up, down);
+      row.appendChild(moves);
+      list.appendChild(row);
+    });
+    form.appendChild(list);
+    const actions = html("div", "btns");
+    const save = html("button", "btn primary", "Save order");
+    save.type = "submit";
+    const cancel = actionButton("Cancel", "order-cancel", "");
+    actions.append(save, cancel);
+    form.appendChild(actions);
+    editor.replaceChildren(form);
+    editor.hidden = false;
+    editor.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    updateMoveButtons(list);
+  }
+
+  function getRecordLabel(key, item) {
+    if (key === "skills") return item.name || item.skillname || "Skill";
+    if (key === "projects") return item.project || item.projectname || "Project";
+    return item.degree || "Education";
+  }
+
+  function moveOrderItem(button) {
+    const row = button.closest(".portfolio-order-item");
+    const list = row.parentElement;
+    const rows = [...list.children];
+    const index = rows.indexOf(row);
+    const target = button.dataset.move === "up" ? rows[index - 1] : rows[index + 1];
+    if (!target) return;
+    if (button.dataset.move === "up") list.insertBefore(row, target);
+    else list.insertBefore(target, row);
+    updateMoveButtons(list);
+    setStatus(`${row.querySelector("span").textContent} moved ${button.dataset.move}. Save the order to apply it.`);
+  }
+
+  function updateMoveButtons(list) {
+    const rows = [...list.children];
+    rows.forEach((row, index) => {
+      row.querySelector('[data-move="up"]').disabled = index === 0;
+      row.querySelector('[data-move="down"]').disabled = index === rows.length - 1;
+    });
   }
 
   function renderForm(editor, title, fields, valueFor, metadata) {
@@ -220,10 +304,15 @@
       education: { degree: ["degree"], institution: ["institution"], yearOfPassing: ["yearofpassing"], grade: ["grade"], description: ["description"] }
     }[key][name];
     const value = fields.map((field) => record[field]).find((candidate) => candidate !== undefined) || "";
-    return name === "isCompleted" ? /completed|true|yes/i.test(value) : value;
+    return name === "isCompleted" ? /^(completed|true|yes)$/i.test(value.trim()) : value;
   }
 
   async function handleSubmit(event) {
+    const orderForm = event.target.closest(".portfolio-order-form");
+    if (orderForm) {
+      event.preventDefault();
+      return saveOrder(orderForm, event.submitter);
+    }
     const form = event.target.closest(".portfolio-editor-form");
     if (!form) return;
     event.preventDefault();
@@ -272,6 +361,20 @@
         await loadRecords();
         window.refreshPortfolio?.();
         setStatus(`${collections[key].label[0].toUpperCase()}${collections[key].label.slice(1)} deleted.`);
+      });
+    } catch (error) { setStatus(error.message, true); }
+  }
+
+  async function saveOrder(form, button) {
+    const key = form.dataset.section;
+    const ids = [...form.querySelectorAll("[data-order-id]")].map((row) => row.dataset.orderId);
+    try {
+      await withBusyButton(button, "Saving order…", async () => {
+        await submit("/admin/portfolioOrder", { section: key, ids: ids.join(",") }, "Portfolio order saved.");
+        closeEditor(form);
+        await loadRecords();
+        window.refreshPortfolio?.();
+        setStatus(`${key[0].toUpperCase()}${key.slice(1)} order saved.`);
       });
     } catch (error) { setStatus(error.message, true); }
   }

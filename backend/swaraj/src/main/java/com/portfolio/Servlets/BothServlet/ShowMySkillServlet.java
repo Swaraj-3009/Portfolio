@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 
 import com.portfolio.Service.BothService;
+import com.portfolio.DAO.DaoImpl.PortfolioOrderDaoImpl;
 import com.portfolio.model.MySkills;
 
 import jakarta.servlet.ServletException;
@@ -18,7 +19,7 @@ public class ShowMySkillServlet extends HttpServlet {
     
     @Override 
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
-        List<MySkills> skills = bothSer.showMySkill();
+        List<MySkills> skills = new PortfolioOrderDaoImpl().applyOrder("skills", bothSer.showMySkill(), MySkills::getId);
 
         resp.setContentType("text/html");
         resp.setCharacterEncoding("UTF-8");

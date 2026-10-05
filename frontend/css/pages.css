@@ -221,6 +221,14 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .portfolio-editor-title{display:flex;align-items:center;justify-content:space-between;gap:14px}
 .portfolio-editor-title h3{font-size:1.02rem}
 .portfolio-editor-close{width:36px;height:36px;padding:0;border-radius:50%;font-size:1.25rem}
+.portfolio-order-form{display:grid;gap:14px}
+.portfolio-order-list{display:grid;gap:8px;margin:0;padding:0;list-style:none;counter-reset:order}
+.portfolio-order-item{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:14px;padding:11px 13px;border:1px solid var(--line);border-radius:11px;background:rgba(255,255,255,.025);counter-increment:order}
+.portfolio-order-item>span{min-width:0;overflow-wrap:anywhere}
+.portfolio-order-item>span::before{content:counter(order,decimal-leading-zero);display:inline-block;min-width:2.5em;color:var(--muted);font-family:var(--mono);font-size:.75rem}
+.portfolio-order-moves{display:flex;gap:6px}
+.portfolio-order-moves .btn{min-height:34px;padding:6px 10px;font-size:.78rem}
+.portfolio-order-moves .btn:disabled{cursor:not-allowed;opacity:.35}
 .nav nav button{color:var(--muted);font-family:inherit;cursor:pointer}
 .nav nav button:hover{color:var(--text)}
 .btn.danger{border-color:rgba(255,124,124,.2);color:#ffaaaa}
@@ -228,6 +236,9 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 @media(max-width:700px){
   .portfolio-section-heading{align-items:flex-start;flex-direction:column;gap:12px}
   .portfolio-section-actions{align-self:flex-start}
+  .portfolio-section-actions{flex-wrap:wrap}
   .portfolio-admin-actions .btn{flex:1}
   .portfolio-editor{padding:16px}
+  .portfolio-order-item{grid-template-columns:1fr;gap:9px}
+  .portfolio-order-moves .btn{flex:1}
 }

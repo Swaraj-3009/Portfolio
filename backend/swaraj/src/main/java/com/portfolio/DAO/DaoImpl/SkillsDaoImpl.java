@@ -40,7 +40,7 @@ public class SkillsDaoImpl implements SkillsDAO {
     public List<MySkills> getSkills() {
         List<MySkills> skill = new ArrayList<>();
 
-        String sql = "SELECT * FROM my_skills";
+        String sql = "SELECT * FROM my_skills ORDER BY id ASC";
 
         try(Connection con = DatabaseConnection.getConnection();
             PreparedStatement ps = con.prepareStatement(sql)){

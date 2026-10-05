@@ -41,7 +41,7 @@ public class ProjectsDaoImpl implements ProjectsDAO {
     @Override
     public List<MyProject> getProject() {
         List<MyProject> projects = new ArrayList<>();
-        String sql = "SELECT * FROM my_projects";
+        String sql = "SELECT * FROM my_projects ORDER BY id ASC";
 
         try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql);

@@ -59,6 +59,14 @@ CREATE TABLE IF NOT EXISTS my_education (
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS portfolio_item_order (
+    section_key VARCHAR(24) NOT NULL,
+    item_id INT NOT NULL,
+    sort_order INT NOT NULL,
+    PRIMARY KEY (section_key, item_id),
+    KEY idx_portfolio_item_order (section_key, sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 INSERT IGNORE INTO admin (username, password) VALUES ('admin', 'admin');
 INSERT IGNORE INTO users (username, email, password, role) VALUES ('user', 'user@example.com', 'user', 'user');
 INSERT IGNORE INTO my_profile (id) VALUES (1);

@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.util.List;
 
 import com.portfolio.Service.BothService;
+import com.portfolio.DAO.DaoImpl.PortfolioOrderDaoImpl;
 import com.portfolio.model.MyProject;
 
 import jakarta.servlet.ServletException;
@@ -20,7 +21,7 @@ public class ShowMyProjectServlet extends HttpServlet {
     @Override 
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
         PrintWriter out = resp.getWriter();
-        List<MyProject> projects = bothSer.showMyProject();
+        List<MyProject> projects = new PortfolioOrderDaoImpl().applyOrder("projects", bothSer.showMyProject(), MyProject::getId);
 
         resp.setContentType("text/html");
         resp.setCharacterEncoding("UTF-8");

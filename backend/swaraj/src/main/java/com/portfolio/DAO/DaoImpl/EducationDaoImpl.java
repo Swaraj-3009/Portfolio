@@ -39,7 +39,7 @@ public class EducationDaoImpl implements EducationDAO {
     @Override
     public List<MyEducation> getEducation() {
         List<MyEducation> educations = new ArrayList<>();
-        String sql = "SELECT * FROM my_education";
+        String sql = "SELECT * FROM my_education ORDER BY id ASC";
 
         try(Connection con = DatabaseConnection.getConnection();
             PreparedStatement ps = con.prepareStatement(sql)){

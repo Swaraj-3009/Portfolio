@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.util.List;
 
 import com.portfolio.Service.BothService;
+import com.portfolio.DAO.DaoImpl.PortfolioOrderDaoImpl;
 import com.portfolio.model.MyEducation;
 
 import jakarta.servlet.ServletException;
@@ -20,7 +21,7 @@ public class ShowMyEducationServlet extends HttpServlet{
     @Override 
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
         PrintWriter out = resp.getWriter();
-        List<MyEducation> educations = bothSer.showMyEducation();
+        List<MyEducation> educations = new PortfolioOrderDaoImpl().applyOrder("education", bothSer.showMyEducation(), MyEducation::getId);
 
         resp.setContentType("text/html");
         resp.setCharacterEncoding("UTF-8");
