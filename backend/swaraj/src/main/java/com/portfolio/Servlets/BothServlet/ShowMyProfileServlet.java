@@ -30,6 +30,7 @@ public class ShowMyProfileServlet extends HttpServlet {
 
         resp.setStatus(HttpServletResponse.SC_OK);
 
+        String imageUrl = profile.getProfileImage() == null ? "" : profile.getProfileImage();
         String html = """
                 <html>
                   <body>
@@ -40,20 +41,33 @@ public class ShowMyProfileServlet extends HttpServlet {
                     <p><strong>Phone:</strong> %s</p>
                     <p><strong>Address:</strong> %s</p>
                     <p><strong>About:</strong> %s</p>
+                    <p><strong>Profile image:</strong> %s</p>
                     <img src='%s' alt='Profile image' />
                   </body>
                 </html>
                 """.formatted(
-                profile.getName() == null ? "" : profile.getName(),
-                profile.getEmail() == null ? "" : profile.getEmail(),
-                profile.getGithubURL() == null ? "" : profile.getGithubURL(),
-                profile.getLinkedinURL() == null ? "" : profile.getLinkedinURL(),
-                profile.getPhone() == null ? "" : profile.getPhone(),
-                profile.getAddress() == null ? "" : profile.getAddress(),
-                profile.getAboutMe() == null ? "" : profile.getAboutMe(),
-                profile.getProfileImage() == null ? "" : profile.getProfileImage()
+                escapeHtml(profile.getName() == null ? "" : profile.getName()),
+                escapeHtml(profile.getEmail() == null ? "" : profile.getEmail()),
+                escapeHtml(profile.getGithubURL() == null ? "" : profile.getGithubURL()),
+                escapeHtml(profile.getLinkedinURL() == null ? "" : profile.getLinkedinURL()),
+                escapeHtml(profile.getPhone() == null ? "" : profile.getPhone()),
+                escapeHtml(profile.getAddress() == null ? "" : profile.getAddress()),
+                escapeHtml(profile.getAboutMe() == null ? "" : profile.getAboutMe()),
+                escapeHtml(imageUrl),
+                escapeHtml(imageUrl)
         );
 
         resp.getWriter().write(html);
+    }
+
+    private String escapeHtml(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
     }
 }

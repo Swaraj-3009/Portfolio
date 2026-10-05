@@ -45,9 +45,24 @@ async function profileTab() {
   };
   const edit = () => {
     panel.innerHTML = `<section class="panel"><h3 style="margin-bottom:16px">Edit profile</h3><form id="f" class="stack-form">${PROFILE_FIELDS.map((f) => fieldHtml(f)).join("")}
+      <div class="preview-box" id="profile-image-preview" style="margin-top:8px; display:none;"><img id="profile-image-preview-img" src="" alt="Profile preview" style="max-width:180px; max-height:180px; border-radius:12px; object-fit:cover;" /></div>
       <div class="btns"><button class="btn primary" type="submit">Save profile</button><button class="btn" type="button" id="cancel">Cancel</button></div></form></section>`;
     const f = $("#f");
     PROFILE_FIELDS.forEach(([n]) => (f.elements[n].value = toForm[n] || ""));
+    const previewWrap = $("#profile-image-preview");
+    const previewImg = $("#profile-image-preview-img");
+    const renderPreview = () => {
+      const url = f.elements.profileImage.value.trim();
+      if (!url) {
+        previewWrap.style.display = "none";
+        previewImg.src = "";
+        return;
+      }
+      previewImg.src = url;
+      previewWrap.style.display = "block";
+    };
+    renderPreview();
+    f.elements.profileImage.addEventListener("input", renderPreview);
     $("#cancel").onclick = view;
     f.onsubmit = async (e) => {
       e.preventDefault();
