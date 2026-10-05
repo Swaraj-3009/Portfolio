@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Swaraj | Aspiring Java Backend Developer</title>
+<meta name="description" content="IT student at NSEC Kolkata building Java backend projects with JDBC, Servlets and MySQL.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+<header class="nav">
+  <a class="brand" href="#top" aria-label="Home">Swaraj</a>
+  <button class="menu-btn" aria-label="Menu" aria-expanded="false">Menu</button>
+  <nav id="nav-links">
+    <a href="#about">About</a><a href="#skills">Skills</a><a href="#projects">Projects</a>
+    <a href="#education">Education</a><a href="#contact">Contact</a>
+    <a id="dash-link" href="index.html">Dashboard</a>
+  </nav>
+</header>
+
+<main id="top">
+<section class="hero wrap">
+  <div class="hero-text">
+    <p class="muted">B.Tech IT, NSEC Kolkata</p>
+    <h1 id="profile-name">Swaraj</h1>
+    <p class="title">IT Student | Aspiring Java Backend Developer</p>
+    <p class="lead">I'm a second-year IT student building backend applications in Java. I work with JDBC, Servlets and MySQL, and I'm moving toward Spring Boot. I'm looking for an internship where I can learn from a real codebase.</p>
+    <div class="btns">
+      <a class="btn primary" href="#projects">View Projects</a>
+      <a class="btn" id="gh" href="#" target="_blank" rel="noopener">GitHub</a>
+      <a class="btn" id="li" href="#" target="_blank" rel="noopener">LinkedIn</a>
+    </div>
+  </div>
+  <div class="photo" id="photo" aria-label="Profile photo"></div>
+</section>
+
+<section class="wrap path-wrap" aria-label="Learning path">
+  <h2 class="small-h">Learning path</h2>
+  <ol class="path" id="path"></ol>
+</section>
+
+<section id="about" class="wrap sec">
+  <h2>About</h2>
+  <div class="prose">
+    <p id="profile-about">I'm a second-year B.Tech student in Information Technology at NSEC Kolkata, interested in backend and software development. Java is my primary language, and most of my time has gone into the layer beneath the frameworks: JDBC, SQL, DAO-style design and how data moves between an application and its database.</p>
+    <p id="about-extra">I'm now learning Servlets and moving toward Spring Boot, because I want to understand what a framework does before I rely on it. I learn best by building projects and working out how things behave internally, not by copying tutorials. I'm aiming for a backend internship and, in third year, a placement where I can keep growing as a Java developer.</p>
+  </div>
+</section>
+
+<section id="skills" class="wrap sec">
+  <h2>Skills</h2>
+  <div class="skills" id="skills-grid"></div>
+</section>
+
+<section id="projects" class="wrap sec">
+  <h2>Projects</h2>
+  <div id="projects-list"></div>
+</section>
+
+<section id="education" class="wrap sec">
+  <h2>Education</h2>
+  <div class="edu">
+    <h3>B.Tech in Information Technology</h3>
+    <p>NSEC Kolkata &middot; Currently in 2nd year &middot; Expected graduation: <span id="grad"></span></p>
+    <p class="muted">Coursework: Object-Oriented Programming, DBMS, Operating Systems, Computer Networks, Data Structures and Algorithms</p>
+  </div>
+</section>
+
+<section id="contact" class="wrap sec">
+  <h2>Contact</h2>
+  <p class="prose">I'm open to internship opportunities. Email is the best way to reach me.</p>
+  <ul class="contact">
+    <li><span>Email</span><a id="mail" href="#"></a></li>
+    <li><span>GitHub</span><a id="gh2" href="https://github.com/Swaraj-3009" target="_blank" rel="noopener"></a></li>
+    <li><span>LinkedIn</span><a id="li2" href="#" target="_blank" rel="noopener"></a></li>
+    <li id="phone-row" hidden><span>Phone</span><a id="phone"></a></li>
+    <li id="address-row" hidden><span>Address</span><span id="address"></span></li>
+  </ul>
+</section>
+
+</main>
+
+<footer class="wrap foot">&copy; <span id="yr"></span> <span id="footer-name">Swaraj</span></footer>
+<script src="js/data.js"></script>
+<script src="js/common.js"></script>
+<script src="js/portfolio.js"></script>
+</body>
+</html>

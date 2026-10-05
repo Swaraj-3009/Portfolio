@@ -3,286 +3,42 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Swaraj | Aspiring Java Backend Developer</title>
-<meta name="description" content="IT student at NSEC Kolkata building Java backend projects with JDBC, Servlets and MySQL.">
+<title>Swaraj Portfolio Hub</title>
+<meta name="description" content="A Java Servlet + MySQL portfolio app with user accounts and an admin panel.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/pages.css">
 </head>
 <body>
-<header class="nav">
-  <a class="brand" href="#top" aria-label="Home">Swaraj</a>
-  <button class="menu-btn" aria-label="Menu" aria-expanded="false">Menu</button>
-  <nav id="nav-links">
-    <a href="#about">About</a><a href="#skills">Skills</a><a href="#projects">Projects</a>
-    <a href="#education">Education</a><a href="#contact">Contact</a>
-    <!-- Reserved for Version 2: "Sign in" link goes here -->
-    <span id="auth-slot"></span>
-  </nav>
+<header class="bar">
+  <a class="brand" href="index.html">Swaraj Portfolio Hub</a>
+  <div class="right"><a class="btn admin" href="admin-login.html">Admin Login</a></div>
 </header>
-
-<div id="auth-modal" class="auth-modal hidden" aria-hidden="true">
-  <div class="auth-panel" role="dialog" aria-modal="true" aria-labelledby="auth-title">
-    <button id="close-auth" class="close-auth" type="button" aria-label="Close login form">×</button>
-    <p class="muted auth-kicker">Portfolio access</p>
-    <h2 id="auth-title">User login</h2>
-    <div class="auth-modes" role="group" aria-label="Account actions">
-      <button id="show-login" class="auth-mode active" type="button" aria-pressed="true">Login</button>
-      <button id="show-register" class="auth-mode" type="button" aria-pressed="false">Register</button>
-    </div>
-    <form id="login-form" class="login-form">
-      <label id="login-role-field">
-        <span>Account type</span>
-        <select id="login-role" name="loginRole">
-          <option value="user">User</option>
-          <option value="admin">Admin</option>
-        </select>
-      </label>
-      <label id="registration-email-field" hidden>
-        <span>Email</span>
-        <input id="register-email" type="email" name="email" autocomplete="email">
-      </label>
-      <label>
-        <span>Username</span>
-        <input id="login-username" type="text" name="username" autocomplete="username" required>
-      </label>
-      <label>
-        <span>Password</span>
-        <input id="login-password" type="password" name="password" autocomplete="current-password" required>
-      </label>
-      <div class="demo-credentials">
-        <p id="auth-hint">Sign in with your user username and password.</p>
-      </div>
-      <button id="auth-submit" class="btn primary auth-submit" type="submit">Sign in</button>
-      <button id="guest-login" class="btn auth-guest" type="button">Continue as guest</button>
-      <p id="auth-message" class="auth-message" aria-live="polite"></p>
-    </form>
-  </div>
-</div>
-
-<main id="top">
-<section class="hero wrap">
-  <div class="hero-text">
-    <p class="muted">B.Tech IT, NSEC Kolkata</p>
-    <h1 id="profile-name">Swaraj</h1>
-    <p class="title">IT Student | Aspiring Java Backend Developer</p>
-    <p class="lead">I'm a second-year IT student building backend applications in Java. I work with JDBC, Servlets and MySQL, and I'm moving toward Spring Boot. I'm looking for an internship where I can learn from a real codebase.</p>
+<main class="wrap">
+  <section class="lp">
+    <p class="muted sm">Java Servlet &middot; JDBC &middot; MySQL</p>
+    <h1>A portfolio you can sign in to.</h1>
+    <p class="lead">Browse the developer's profile, skills, projects and education. Create an account to manage your own details, or look around as a guest.</p>
     <div class="btns">
-      <a class="btn primary" href="#projects">View Projects</a>
-      <a class="btn" id="gh" href="#" target="_blank" rel="noopener">GitHub</a>
-      <a class="btn" id="li" href="#" target="_blank" rel="noopener">LinkedIn</a>
+      <a class="btn primary" href="login.html">Login</a>
+      <a class="btn" href="register.html">Register</a>
+      <button class="btn" type="button" id="guest">Continue as Guest</button>
     </div>
-  </div>
-  <div class="photo" id="photo" aria-label="Profile photo"></div>
-</section>
-
-<section class="wrap path-wrap" aria-label="Learning path">
-  <h2 class="small-h">Learning path</h2>
-  <ol class="path" id="path"></ol>
-</section>
-
-<section id="about" class="wrap sec">
-  <h2>About</h2>
-  <div class="prose">
-    <p id="profile-about">I'm a second-year B.Tech student in Information Technology at NSEC Kolkata, interested in backend and software development. Java is my primary language, and most of my time has gone into the layer beneath the frameworks: JDBC, SQL, DAO-style design and how data moves between an application and its database.</p>
-    <p id="about-extra">I'm now learning Servlets and moving toward Spring Boot, because I want to understand what a framework does before I rely on it. I learn best by building projects and working out how things behave internally, not by copying tutorials. I'm aiming for a backend internship and, in third year, a placement where I can keep growing as a Java developer.</p>
-  </div>
-</section>
-
-<section id="skills" class="wrap sec">
-  <h2>Skills</h2>
-  <div class="skills" id="skills-grid"></div>
-</section>
-
-<section id="projects" class="wrap sec">
-  <h2>Projects</h2>
-  <div id="projects-list"></div>
-</section>
-
-<section id="education" class="wrap sec">
-  <h2>Education</h2>
-  <div class="edu">
-    <h3>B.Tech in Information Technology</h3>
-    <p>NSEC Kolkata &middot; Currently in 2nd year &middot; Expected graduation: <span id="grad"></span></p>
-    <p class="muted">Coursework: Object-Oriented Programming, DBMS, Operating Systems, Computer Networks, Data Structures and Algorithms</p>
-  </div>
-</section>
-
-<section id="contact" class="wrap sec">
-  <h2>Contact</h2>
-  <p class="prose">I'm open to internship opportunities. Email is the best way to reach me.</p>
-  <ul class="contact">
-    <li><span>Email</span><a id="mail" href="swarajkansyakar93@gmail.com"></a></li>
-    <li><span>GitHub</span><a id="gh2" href="https://github.com/Swaraj-3009" target="_blank" rel="noopener"></a></li>
-    <li><span>LinkedIn</span><a id="li2" href="#" target="_blank" rel="noopener"></a></li>
-    <li id="phone-row" hidden><span>Phone</span><a id="phone"></a></li>
-    <li id="address-row" hidden><span>Address</span><span id="address"></span></li>
-  </ul>
-</section>
-
-<section id="dashboard" class="wrap sec" hidden>
-  <div class="dashboard-heading">
-    <div>
-      <p class="muted dashboard-kicker" id="dashboard-role">Portfolio workspace</p>
-      <h2 id="dashboard-title">Dashboard</h2>
-    </div>
-    <a class="btn" href="#top">Back to portfolio</a>
-  </div>
-  <div class="dashboard-grid">
-    <div id="guest-dashboard" class="panel" hidden>
-      <h3>Guest access</h3>
-      <p class="dashboard-copy">Browse the portfolio and public profile. Sign in or create an account to manage your account settings.</p>
-      <div class="dashboard-actions">
-        <a class="btn primary" href="#projects">View projects</a>
-        <a class="btn" href="#skills">View skills</a>
-        <button id="guest-sign-in" class="btn" type="button">Sign in or register</button>
-      </div>
-      <div class="panel-section">
-        <h4>Public portfolio</h4>
-        <div id="guest-public-summary" class="mini-list"></div>
-      </div>
-    </div>
-
-    <div id="admin-dashboard" class="panel" hidden>
-      <h3>Admin workspace</h3>
-      <p class="dashboard-copy">Manage the portfolio profile, skills, education, and projects.</p>
-      <div class="panel-section">
-        <h4>Update profile</h4>
-        <form id="admin-profile-form" class="stack-form">
-          <input name="name" type="text" placeholder="Name">
-          <input name="email" type="email" placeholder="Email">
-          <input name="phone" type="text" placeholder="Phone">
-          <input name="address" type="text" placeholder="Address">
-          <input name="githubURL" type="url" placeholder="GitHub URL">
-          <input name="linkedinURL" type="url" placeholder="LinkedIn URL">
-          <input name="profileImage" type="url" placeholder="Profile image URL">
-          <textarea name="aboutMe" rows="4" placeholder="About me"></textarea>
-          <button type="submit" class="btn primary">Save profile</button>
-        </form>
-      </div>
-      <div class="panel-section">
-        <h4>Add skill</h4>
-        <form id="add-skill-form" class="stack-form">
-          <input name="skillName" type="text" placeholder="Skill name" required>
-          <label class="check-row"><input type="checkbox" name="isCompleted" value="true"> Completed</label>
-          <button type="submit" class="btn primary">Add skill</button>
-        </form>
-      </div>
-      <div class="panel-section">
-        <h4>Update or remove skill</h4>
-        <form id="manage-skill-form" class="stack-form">
-          <input name="id" type="number" min="1" placeholder="Skill ID" required>
-          <select name="action" aria-label="Skill action">
-            <option value="update">Mark as in progress</option>
-            <option value="delete">Delete skill</option>
-          </select>
-          <button type="submit" class="btn">Apply skill change</button>
-        </form>
-        <div id="admin-skills-list" class="mini-list"></div>
-      </div>
-      <div class="panel-section">
-        <h4>Add education</h4>
-        <form id="add-education-form" class="stack-form">
-          <input name="degree" type="text" placeholder="Degree" required>
-          <input name="institution" type="text" placeholder="Institution" required>
-          <input name="yearOfPassing" type="text" placeholder="Year of passing">
-          <input name="grade" type="text" placeholder="Grade">
-          <textarea name="description" rows="3" placeholder="Description"></textarea>
-          <button type="submit" class="btn primary">Add education</button>
-        </form>
-      </div>
-      <div class="panel-section">
-        <h4>Update or remove education</h4>
-        <form id="manage-education-form" class="stack-form">
-          <input name="id" type="number" min="1" placeholder="Education ID" required>
-          <select name="action" aria-label="Education action">
-            <option value="update">Update education</option>
-            <option value="delete">Delete education</option>
-          </select>
-          <input name="degree" type="text" placeholder="Degree">
-          <input name="institution" type="text" placeholder="Institution">
-          <input name="yearOfPassing" type="text" placeholder="Year of passing">
-          <input name="grade" type="text" placeholder="Grade">
-          <textarea name="description" rows="3" placeholder="Description"></textarea>
-          <button type="submit" class="btn">Apply education change</button>
-        </form>
-      </div>
-      <div class="panel-section">
-        <h4>Add project</h4>
-        <form id="add-project-form" class="stack-form">
-          <input name="id" type="number" min="1" placeholder="Project ID" required>
-          <input name="projectName" type="text" placeholder="Project name" required>
-          <textarea name="projectDescription" rows="3" placeholder="Description"></textarea>
-          <input name="technologiesUsed" type="text" placeholder="Technologies used">
-          <input name="githubUrl" type="url" placeholder="GitHub URL">
-          <input name="liveUrl" type="url" placeholder="Live URL">
-          <label class="check-row"><input type="checkbox" name="isCompleted" value="true"> Completed</label>
-          <button type="submit" class="btn primary">Add project</button>
-        </form>
-      </div>
-      <div class="panel-section">
-        <h4>Update or remove project</h4>
-        <form id="manage-project-form" class="stack-form">
-          <input name="id" type="number" min="1" placeholder="Project ID" required>
-          <select name="action" aria-label="Project action">
-            <option value="update">Update project</option>
-            <option value="delete">Delete project</option>
-          </select>
-          <input name="projectName" type="text" placeholder="Project name">
-          <textarea name="projectDescription" rows="3" placeholder="Description"></textarea>
-          <input name="technologiesUsed" type="text" placeholder="Technologies used">
-          <input name="githubUrl" type="url" placeholder="GitHub URL">
-          <input name="liveUrl" type="url" placeholder="Live URL">
-          <label class="check-row"><input type="checkbox" name="isCompleted" value="true"> Completed</label>
-          <button type="submit" class="btn">Apply project change</button>
-        </form>
-      </div>
-    </div>
-
-    <div id="user-dashboard" class="panel" hidden>
-      <h3>User account</h3>
-      <p class="dashboard-copy">Update your account details. Your portfolio browsing access is shared with guests.</p>
-      <div class="panel-section">
-        <h4>Update username</h4>
-        <form id="update-username-form" class="stack-form">
-          <input name="username" type="text" placeholder="New username" required>
-          <input name="password" type="password" placeholder="Current password" required>
-          <button type="submit" class="btn primary">Update username</button>
-        </form>
-      </div>
-      <div class="panel-section">
-        <h4>Update email</h4>
-        <form id="update-email-form" class="stack-form">
-          <input name="email" type="email" placeholder="New email" required>
-          <input name="password" type="password" placeholder="Current password" required>
-          <button type="submit" class="btn primary">Update email</button>
-        </form>
-      </div>
-      <div class="panel-section">
-        <h4>Update password</h4>
-        <form id="update-password-form" class="stack-form">
-          <input name="password" type="password" placeholder="New password" required>
-          <button type="submit" class="btn primary">Update password</button>
-        </form>
-      </div>
-      <div class="panel-section">
-        <h4>Public portfolio</h4>
-        <div class="dashboard-actions">
-          <a class="btn" href="#projects">Projects</a>
-          <a class="btn" href="#skills">Skills</a>
-          <a class="btn" href="#education">Education</a>
-          <a class="btn" href="#contact">Contact</a>
-        </div>
-        <div id="public-admin-profile" class="mini-card"></div>
-      </div>
-    </div>
-  </div>
-</section>
+  </section>
+  <section class="cards" aria-label="About this app">
+    <div class="panel"><h3>What it is</h3><p>A full-stack portfolio app. The frontend talks to a Java Servlet backend that stores everything in MySQL.</p></div>
+    <div class="panel"><h3>For visitors</h3><p>Register or continue as a guest to view the developer profile and the full portfolio. Registered users can edit their own account details.</p></div>
+    <div class="panel"><h3>For the owner</h3><p>The admin signs in separately to manage the profile, education, skills and projects shown on the portfolio.</p></div>
+  </section>
 </main>
-
-<footer class="wrap foot">&copy; <span id="yr"></span> <span id="footer-name">Swaraj</span></footer>
+<footer class="wrap foot">&copy; <span id="yr"></span> Swaraj Kansyakar</footer>
 <script src="js/data.js"></script>
-<script src="js/main.js"></script>
+<script src="js/common.js"></script>
+<script>
+  $("#yr").textContent = new Date().getFullYear();
+  $("#guest").onclick = () => { setUser({ name: "Guest", role: "guest" }); location.href = "user-dashboard.html"; };
+</script>
 </body>
 </html>

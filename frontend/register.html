@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Create Account | Swaraj Portfolio Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/pages.css">
+</head>
+<body data-page="register">
+<header class="bar"><a class="brand" href="index.html">Swaraj Portfolio Hub</a><div class="right"><a class="btn" href="index.html">Back</a></div></header>
+<main class="auth-page">
+  <p class="muted sm">New user</p>
+  <h1>Create Account</h1>
+  <form id="auth-form" class="stack-form">
+    <label>Username<input name="username" autocomplete="username" required></label>
+    <label>Email<input name="email" type="email" autocomplete="email" required></label>
+    <label>Password<input name="password" type="password" autocomplete="new-password" required></label>
+    <button class="btn primary" type="submit" id="submit">Register</button>
+  </form>
+  <div class="status" id="status" aria-live="polite"></div>
+  <p class="alt">Already registered? <a href="login.html">Login</a></p>
+</main>
+<script src="js/data.js"></script>
+<script src="js/common.js"></script>
+<script src="js/auth.js"></script>
+</body>
+</html>

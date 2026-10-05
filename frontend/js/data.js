@@ -39,4 +39,13 @@ const SITE = {
   ]
 };
 
-const API_BASE_URL = "http://localhost:8080";
+const API_BASE_URL = window.location.pathname.startsWith("/swaraj/")
+  ? `${window.location.origin}/swaraj`
+  : "http://localhost:8080/swaraj";
+const FRONTEND_URL = "http://localhost:5500";
+
+const isFileProtocol = typeof window !== "undefined" && window.location && window.location.protocol === "file:";
+
+if (isFileProtocol) {
+  console.warn("Open the frontend through http://localhost:5500. The backend is at http://localhost:8080/swaraj.");
+}

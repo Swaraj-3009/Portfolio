@@ -135,6 +135,14 @@ const submitAuthRequest = async (endpoint, values, successText, user, isRegistra
   submitButton.disabled = true;
   loginForm.setAttribute("aria-busy", "true");
 
+  if (window.location.protocol === "file:") {
+    authMessage.textContent = "Open this page from http://localhost:5500, not as a file. The backend is at http://localhost:8080/swaraj.";
+    authMessage.classList.add("error");
+    submitButton.disabled = false;
+    loginForm.removeAttribute("aria-busy");
+    return;
+  }
+
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "POST",

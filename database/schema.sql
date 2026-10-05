@@ -1,3 +1,7 @@
+CREATE DATABASE IF NOT EXISTS portfolio;
+
+USE portfolio;
+
 CREATE TABLE IF NOT EXISTS users (
     username VARCHAR(64) NOT NULL,
     email VARCHAR(254) NOT NULL,
@@ -14,7 +18,7 @@ CREATE TABLE IF NOT EXISTS admin (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS my_profile (
-    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    id INT NOT NULL AUTO_INCREMENT,
     name VARCHAR(120) NOT NULL DEFAULT '',
     about_me TEXT,
     email VARCHAR(254) NOT NULL DEFAULT '',
@@ -27,14 +31,14 @@ CREATE TABLE IF NOT EXISTS my_profile (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS my_skills (
-    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    id INT NOT NULL AUTO_INCREMENT,
     skill_name VARCHAR(120) NOT NULL,
     is_completed BOOLEAN NOT NULL DEFAULT FALSE,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS my_projects (
-    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    id INT NOT NULL AUTO_INCREMENT,
     project_name VARCHAR(255) NOT NULL,
     project_description TEXT,
     technologies_used TEXT,
@@ -46,7 +50,7 @@ CREATE TABLE IF NOT EXISTS my_projects (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS my_education (
-    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    id INT NOT NULL AUTO_INCREMENT,
     degree VARCHAR(120) NOT NULL DEFAULT '',
     institution VARCHAR(255) NOT NULL DEFAULT '',
     year_of_passing VARCHAR(20) NOT NULL DEFAULT '',
@@ -56,4 +60,5 @@ CREATE TABLE IF NOT EXISTS my_education (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT IGNORE INTO admin (username, password) VALUES ('admin', 'admin');
+INSERT IGNORE INTO users (username, email, password, role) VALUES ('user', 'user@example.com', 'user', 'user');
 INSERT IGNORE INTO my_profile (id) VALUES (1);
