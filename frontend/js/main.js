@@ -279,7 +279,6 @@ const applyProfile = (profile) => {
   }
   if (profile.about) {
     $("#profile-about").textContent = profile.about;
-    $("#about-extra").hidden = true;
   }
   if (profile.email) {
     $("#mail").href = `mailto:${profile.email}`;

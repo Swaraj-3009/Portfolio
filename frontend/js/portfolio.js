@@ -142,8 +142,7 @@ const updateProfileLink = (selector, value) => {
 const applyProfile = (profile) => {
   $("#profile-name").textContent = profile.name;
   $("#footer-name").textContent = profile.name;
-  $("#profile-about").textContent = profile.about;
-  $("#about-extra").hidden = true;
+  $("#profile-about").textContent = profile.about || "";
   $("#mail").href = profile.email ? `mailto:${profile.email}` : "#";
   $("#mail").textContent = profile.email;
   updateProfileLink("#gh", profile.github);
