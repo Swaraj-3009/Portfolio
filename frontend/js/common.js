@@ -17,7 +17,9 @@ function requireRole(...roles) {
   return u;
 }
 function mountTopbar(u) {
-  $("#bar-right").innerHTML = `<a class="btn" href="portfolio.html">Portfolio</a><span class="muted sm">${esc(u.name)}</span><button class="btn" type="button" id="logout">Logout</button>`;
+  const bar = $("#bar-right");
+  if (!bar) return;
+  bar.innerHTML = `<a class="btn" href="portfolio.html">Portfolio</a><span class="muted sm">${esc(u.name)}</span><button class="btn" type="button" id="logout">Logout</button>`;
   $("#logout").onclick = logout;
 }
 function setStatus(text, isError) {

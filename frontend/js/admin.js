@@ -17,7 +17,11 @@ const SECTIONS = {
 };
 const PROFILE_FIELDS = [["name", "Name"], ["email", "Email", "email"], ["phone", "Phone"], ["address", "Address"], ["githubURL", "GitHub URL", "url"], ["linkedinURL", "LinkedIn URL", "url"], ["profileImage", "Profile image URL", "url"], ["aboutMe", "About me", "area"]];
 
-if (admin) { mountTopbar(admin); window.addEventListener("hashchange", show); show(); }
+if (admin && document.querySelector("#tabs") && document.querySelector("#panel")) {
+  mountTopbar(admin);
+  window.addEventListener("hashchange", show);
+  show();
+}
 
 function show() {
   const tab = location.hash.slice(1) in SECTIONS || location.hash === "#profile" ? location.hash.slice(1) : "profile";

@@ -278,7 +278,8 @@ const applyProfile = (profile) => {
     $("#footer-name").textContent = profile.name;
   }
   if (profile.about) {
-    $("#profile-about").textContent = profile.about;
+    const profileAbout = $("#profile-about");
+    if (profileAbout) profileAbout.textContent = profile.about;
   }
   if (profile.email) {
     $("#mail").href = `mailto:${profile.email}`;

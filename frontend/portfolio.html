@@ -16,7 +16,7 @@
   <a class="brand" href="#top" aria-label="Home">Swaraj</a>
   <button class="menu-btn" aria-label="Menu" aria-expanded="false">Menu</button>
   <nav id="nav-links">
-    <a href="#about">About</a><a href="#skills">Skills</a><a href="#projects">Projects</a>
+    <a href="#skills">Skills</a><a href="#projects">Projects</a>
     <a href="#education">Education</a><a href="#contact">Contact</a>
     <a id="dash-link" href="index.html">Dashboard</a>
   </nav>
@@ -38,16 +38,15 @@
   <div class="photo" id="photo" aria-label="Profile photo"></div>
 </section>
 
+<nav class="tabs" id="tabs" aria-label="Admin portfolio sections">
+  <a href="#profile">My Profile</a><a href="#education">My Education</a><a href="#skills">My Skills</a><a href="#projects">My Projects</a>
+</nav>
+<div class="status" id="status" aria-live="polite"></div>
+<div class="stack" id="panel"></div>
+
 <section class="wrap path-wrap" aria-label="Learning path">
   <h2 class="small-h">Learning path</h2>
   <ol class="path" id="path"></ol>
-</section>
-
-<section id="about" class="wrap sec">
-  <h2>About</h2>
-  <div class="prose">
-    <p id="profile-about"></p>
-  </div>
 </section>
 
 <section id="skills" class="wrap sec">
@@ -82,6 +81,7 @@
 <footer class="wrap foot">&copy; <span id="yr"></span> <span id="footer-name">Swaraj</span></footer>
 <script src="js/data.js"></script>
 <script src="js/common.js"></script>
+<script src="js/admin.js"></script>
 <script src="js/portfolio.js"></script>
 </body>
 </html>
