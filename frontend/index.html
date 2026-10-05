@@ -14,22 +14,22 @@
 <body>
 <header class="bar">
   <a class="brand" href="index.html">Swaraj Portfolio Hub</a>
-  <div class="right"><a class="btn admin" href="admin-login.html">Admin Login</a></div>
+  <div class="right"><a class="btn" href="portfolio.html">View portfolio</a><a class="btn admin" href="admin-login.html">Admin Login</a></div>
 </header>
 <main class="wrap">
   <section class="lp">
-    <p class="muted sm">Java Servlet &middot; JDBC &middot; MySQL</p>
-    <h1>A portfolio you can sign in to.</h1>
-    <p class="lead">Browse the developer's profile, skills, projects and education. Create an account to manage your own details, or look around as a guest.</p>
+    <p class="muted sm">Java &middot; Servlets &middot; MySQL</p>
+    <h1>Built with curiosity.<br>Growing with every project.</h1>
+    <p class="lead">Explore the work, learning path, and story behind this portfolio. Visitors can browse freely; registered users can manage their account.</p>
     <div class="btns">
-      <a class="btn primary" href="login.html">Login</a>
-      <a class="btn" href="register.html">Register</a>
-      <button class="btn" type="button" id="guest">Continue as Guest</button>
+      <button class="btn primary" type="button" id="guest">Browse portfolio</button>
+      <a class="btn" href="login.html">Sign in</a>
+      <a class="btn" href="register.html">Create account</a>
     </div>
   </section>
   <section class="cards" aria-label="About this app">
-    <div class="panel"><h3>What it is</h3><p>A full-stack portfolio app. The frontend talks to a Java Servlet backend that stores everything in MySQL.</p></div>
-    <div class="panel"><h3>For visitors</h3><p>Register or continue as a guest to view the developer profile and the full portfolio. Registered users can edit their own account details.</p></div>
+    <div class="panel"><h3>About the work</h3><p>A hands-on portfolio of Java, JDBC, Servlet, and MySQL projects built while learning backend development.</p></div>
+    <div class="panel"><h3>For visitors</h3><p>Browse the developer profile, skills, education, and projects without creating an account.</p></div>
     <div class="panel"><h3>For the owner</h3><p>The admin signs in separately to manage the profile, education, skills and projects shown on the portfolio.</p></div>
   </section>
 </main>
@@ -38,7 +38,7 @@
 <script src="js/common.js"></script>
 <script>
   $("#yr").textContent = new Date().getFullYear();
-  $("#guest").onclick = () => { setUser({ name: "Guest", role: "guest" }); location.href = "user-dashboard.html"; };
+  $("#guest").onclick = () => { setUser({ name: "Guest", role: "guest" }); location.href = "portfolio.html"; };
 </script>
 </body>
 </html>

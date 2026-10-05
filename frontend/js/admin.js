@@ -1,207 +1,286 @@
-/* admin-dashboard.html: one tab per section, switched with the URL hash */
-const admin = requireRole("admin");
-const panel = $("#panel");
+/* Admin controls are attached to the public portfolio's existing sections. */
+(() => {
+  if (getUser()?.role !== "admin") return;
 
-/* Endpoints and field names are the ones your servlets already use.
-   Field = [name, label, type, required]  (type: text | url | area | check) */
-const SECTIONS = {
-  education: { single: "education", updLabel: "Update education", list: "/admin/myEducation", bool: false,
-    add: "/admin/myEducation/AddEducation", upd: "/admin/myEducation/updateEducation", del: "/admin/myEducation/deleteEducation",
-    fields: [["degree", "Degree", "text", 1], ["institution", "Institution", "text", 1], ["yearOfPassing", "Year of passing"], ["grade", "Grade"], ["description", "Description", "area"]] },
-  skills: { single: "skill", updLabel: "Update skill", bool: true, list: "/admin/skill",
-    add: "/admin/skill/addSkill", upd: "/admin/skill/updateSkill", del: "/admin/skill/DeleteSkill",
-    fields: [["skillName", "Skill name", "text", 1], ["isCompleted", "Completed", "check"]] },
-  projects: { single: "project", updLabel: "Update project", bool: true, list: "/admin/myProject",
-    add: "/admin/myProject/addMyProject", upd: "/admin/myProject/updateMyProject", del: "/admin/myProject/deleteMyProject",
-    fields: [["projectName", "Project name", "text", 1], ["projectDescription", "Description", "area"], ["technologiesUsed", "Technologies used"], ["githubUrl", "GitHub URL", "url"], ["liveUrl", "Live URL", "url"], ["isCompleted", "Completed", "check"]] }
-};
-const PROFILE_FIELDS = [["name", "Name"], ["email", "Email", "email"], ["phone", "Phone"], ["address", "Address"], ["githubURL", "GitHub URL", "url"], ["linkedinURL", "LinkedIn URL", "url"], ["profileImage", "Profile image URL", "url"], ["aboutMe", "About me", "area"]];
-
-if (admin && document.querySelector("#tabs") && document.querySelector("#panel")) {
-  mountTopbar(admin);
-  window.addEventListener("hashchange", show);
-  show();
-}
-
-function show() {
-  const tab = location.hash.slice(1) in SECTIONS || location.hash === "#profile" ? location.hash.slice(1) : "profile";
-  document.querySelectorAll("#tabs a").forEach((a) => a.classList.toggle("on", a.getAttribute("href") === "#" + tab));
-  setStatus("");
-  tab === "profile" ? profileTab() : manageTab(tab);
-}
-
-const fieldHtml = ([n, l, t, req], optional) =>
-  t === "check" ? `<label class="check-row"><input type="checkbox" name="${n}" value="true"> ${l}</label>`
-  : t === "area" ? `<label>${l}<textarea name="${n}" rows="3"></textarea></label>`
-  : `<label>${l}<input name="${n}" type="${t === "url" ? "url" : t === "email" ? "email" : "text"}" ${req && !optional ? "required" : ""}></label>`;
-
-/* ---- My Profile: view, then edit ---- */
-async function profileTab() {
-  panel.innerHTML = `<section class="panel"><p class="muted">Loading...</p></section>`;
-  let p;
-  try { p = await fetchProfile(); }
-  catch { panel.innerHTML = `<section class="panel"><h3>My Profile</h3><p class="muted">The profile could not be loaded. Check that the backend is running.</p></section>`; return; }
-
-  const toForm = { name: p.name, email: p.email, phone: p.phone, address: p.address, githubURL: p.github, linkedinURL: p.linkedin, profileImage: p.image, aboutMe: p.about };
-  const view = () => {
-    panel.innerHTML = `<section class="panel"><div class="row"><h3>My Profile</h3><button class="btn" id="edit" type="button">Edit profile</button></div>${profileRows(p)}</section>`;
-    $("#edit").onclick = edit;
+  const profileEndpoint = "/admin/myProfile/updateMyProfile";
+  const profileKeys = ["name", "email", "phone", "address", "githubURL", "linkedinURL", "profileImage", "aboutMe"];
+  const profileGroups = {
+    identity: [["name", "Name", "text", true], ["profileImage", "Profile image URL", "url"]],
+    about: [["aboutMe", "About me", "area"]],
+    contact: [["email", "Email", "email"], ["phone", "Phone", "tel"], ["address", "Location"], ["githubURL", "GitHub URL", "url"], ["linkedinURL", "LinkedIn URL", "url"]]
   };
-  const edit = () => {
-    panel.innerHTML = `<section class="panel"><h3 style="margin-bottom:16px">Edit profile</h3><form id="f" class="stack-form">${PROFILE_FIELDS.map((f) => fieldHtml(f)).join("")}
-      <div class="preview-box" id="profile-image-preview" style="margin-top:8px; display:none;"><img id="profile-image-preview-img" src="" alt="Profile preview" style="max-width:180px; max-height:180px; border-radius:12px; object-fit:cover;" /></div>
-      <div class="btns"><button class="btn primary" type="submit">Save profile</button><button class="btn" type="button" id="cancel">Cancel</button></div></form></section>`;
-    const f = $("#f");
-    PROFILE_FIELDS.forEach(([n]) => (f.elements[n].value = toForm[n] || ""));
-    const previewWrap = $("#profile-image-preview");
-    const previewImg = $("#profile-image-preview-img");
-    const renderPreview = () => {
-      const url = f.elements.profileImage.value.trim();
-      if (!url) {
-        previewWrap.style.display = "none";
-        previewImg.src = "";
-        return;
-      }
-      previewImg.src = url;
-      previewWrap.style.display = "block";
-    };
-    renderPreview();
-    f.elements.profileImage.addEventListener("input", renderPreview);
-    $("#cancel").onclick = view;
-    f.onsubmit = async (e) => {
-      e.preventDefault();
-      try {
-        const msg = await submit("/admin/myProfile/updateMyProfile", Object.fromEntries(new FormData(f).entries()), "Profile updated");
-        p = await fetchProfile(); Object.assign(toForm, { name: p.name, email: p.email, phone: p.phone, address: p.address, githubURL: p.github, linkedinURL: p.linkedin, profileImage: p.image, aboutMe: p.about });
-        view(); setStatus(msg);
-      } catch (err) { setStatus(err.message, true); }
-    };
+  const collections = {
+    skills: { label: "skill", list: "/admin/skill", add: "/admin/skill/addSkill", update: "/admin/skill/updateSkill", remove: "/admin/skill/DeleteSkill", fields: [["skillName", "Skill name", "text", true], ["isCompleted", "Currently learning", "check"]] },
+    projects: { label: "project", list: "/admin/myProject", add: "/admin/myProject/addMyProject", update: "/admin/myProject/updateMyProject", remove: "/admin/myProject/deleteMyProject", fields: [["projectName", "Project name", "text", true], ["projectDescription", "Description", "area"], ["technologiesUsed", "Technologies", "text"], ["githubUrl", "GitHub URL", "url"], ["liveUrl", "Live URL", "url"], ["isCompleted", "Completed", "check"]] },
+    education: { label: "education", list: "/admin/myEducation", add: "/admin/myEducation/AddEducation", update: "/admin/myEducation/updateEducation", remove: "/admin/myEducation/deleteEducation", fields: [["degree", "Degree or qualification", "text", true], ["institution", "Institution", "text", true], ["yearOfPassing", "Year of passing", "text"], ["grade", "Grade", "text"], ["description", "Description", "area"]] }
   };
-  view();
-}
+  const profileValues = { name: "", email: "", phone: "", address: "", githubURL: "", linkedinURL: "", profileImage: "", aboutMe: "" };
+  const collectionValues = { skills: [], projects: [], education: [] };
+  const html = (tag, className, text) => { const element = document.createElement(tag); if (className) element.className = className; if (text !== undefined) element.textContent = text; return element; };
 
-/* ---- Education / Skills / Projects: add form + update-or-delete by ID ---- */
-function normalizeListKey(value) {
-  return String(value || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "");
-}
+  function preparePortfolioEditing() {
+    document.querySelector("#status")?.classList.add("admin-status");
+    const heroActions = document.querySelector(".hero-text .btns");
+    if (heroActions) heroActions.appendChild(actionButton("Edit intro", "profile-edit", "identity"));
+    addSectionAction("about", "Edit about", "profile-edit", "about");
+    addSectionAction("contact", "Edit contact", "profile-edit", "contact");
+    addSectionAction("skills", "+ Add skill", "record-add", "skills", true);
+    addSectionAction("projects", "+ Add project", "record-add", "projects", true);
+    addSectionAction("education", "+ Add education", "record-add", "education", true);
+    const dashboardLink = document.querySelector("#dash-link");
+    if (dashboardLink) dashboardLink.textContent = "Editing portfolio";
+    const nav = document.querySelector("#nav-links");
+    if (nav) nav.appendChild(actionButton("Log out", "admin-logout", ""));
 
-function parseItemId(text) {
-  const match = String(text || "").match(/ID:\s*(\d+)/i);
-  return match ? Number(match[1]) : null;
-}
-
-function fillUpdateFormFromText(key, text, form) {
-  const raw = String(text || "");
-  const data = {};
-  raw.split("|").map((part) => part.trim()).filter(Boolean).forEach((part) => {
-    const match = part.match(/^(.+?):\s*(.*)$/);
-    if (!match) return;
-    const keyName = normalizeListKey(match[1]);
-    data[keyName] = match[2].trim();
-  });
-
-  if (key === "skills") {
-    const name = data.name || data.skillname || "";
-    const status = data.status || data.iscompleted || "";
-    form.elements.skillName.value = name;
-    form.elements.isCompleted.checked = /completed|true|yes/i.test(status);
-  }
-
-  if (key === "education") {
-    form.elements.degree.value = data.degree || "";
-    form.elements.institution.value = data.institution || "";
-    form.elements.yearOfPassing.value = data.yearofpassing || "";
-    form.elements.grade.value = data.grade || "";
-    form.elements.description.value = data.description || "";
-  }
-
-  if (key === "projects") {
-    form.elements.projectName.value = data.project || data.projectname || "";
-    form.elements.projectDescription.value = data.description || "";
-    form.elements.technologiesUsed.value = data.technologies || data.technologiesused || "";
-    form.elements.githubUrl.value = data.github || data.githuburl || "";
-    form.elements.liveUrl.value = data.liveurl || data.live || "";
-    form.elements.isCompleted.checked = /completed|true|yes/i.test(data.status || data.iscompleted || "");
-  }
-}
-
-function bindItemActions(list, key, form) {
-  list.querySelectorAll("[data-edit-id]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const id = Number(button.dataset.editId);
-      if (!Number.isFinite(id)) return;
-      form.elements.id.value = id;
-      form.elements.action.value = "upd";
-      const itemText = button.closest("[data-item-text]")?.dataset.itemText || "";
-      fillUpdateFormFromText(key, itemText, form);
-      const optPane = form.querySelector("[data-opt]");
-      if (optPane) optPane.hidden = false;
-      form.scrollIntoView({ behavior: "smooth", block: "center" });
+    Object.keys(collections).forEach((key) => {
+      const section = document.querySelector(`#${key}`);
+      if (!section) return;
+      const editor = html("div", "portfolio-editor");
+      editor.id = `${key}-editor`;
+      editor.hidden = true;
+      section.appendChild(editor);
     });
-  });
-}
+    ["about", "contact"].forEach((key) => {
+      const editor = html("div", "portfolio-editor");
+      editor.id = `${key}-editor`;
+      editor.hidden = true;
+      document.querySelector(`#${key}`)?.appendChild(editor);
+    });
+    const identityEditor = html("div", "portfolio-editor");
+    identityEditor.id = "identity-editor";
+    identityEditor.hidden = true;
+    document.querySelector(".hero-text")?.appendChild(identityEditor);
 
-function manageTab(key) {
-  const c = SECTIONS[key], upd = c.updFields ?? c.fields;
-  panel.innerHTML = `
-    <section class="panel"><h3 style="margin-bottom:16px">Add ${c.single}</h3>
-      <form id="addf" class="stack-form">${c.fields.map((f) => fieldHtml(f)).join("")}<button class="btn primary" type="submit">Add ${c.single}</button></form></section>
-    <section class="panel"><h3 style="margin-bottom:16px">Update or delete ${c.single}</h3>
-      <form id="manf" class="stack-form">
-        <label>${c.single[0].toUpperCase() + c.single.slice(1)} ID<input name="id" type="number" min="1" required></label>
-        <label>Action<select name="action"><option value="upd">${c.updLabel}</option><option value="del">Delete ${c.single}</option></select></label>
-        <div class="stack-form" data-opt>${upd.map((f) => fieldHtml(f, true)).join("")}</div>
-        <button class="btn" type="submit">Apply change</button>
-      </form>
-      ${c.list ? `<div class="mini-list" id="list"></div>` : ""}
-    </section>`;
+    document.addEventListener("click", handleClick);
+    document.addEventListener("click", (event) => {
+      if (event.target.closest("[data-admin-logout]")) logout();
+    });
+    document.addEventListener("submit", handleSubmit);
+    window.PortfolioEditor = { renderSection };
+    loadRecords();
+    loadProfile();
+  }
 
-  const manf = $("#manf");
-  const toggleAction = () => {
-    const opt = $("[data-opt]");
-    opt.hidden = manf.elements.action.value === "del";
-  };
-  manf.elements.action.onchange = toggleAction;
-  toggleAction();
-  const strip = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== ""));
+  function actionButton(label, type, value, primary = false) {
+    const button = html("button", `btn${primary ? " primary" : ""}`, label);
+    button.type = "button";
+    const property = type.replace(/-([a-z])/g, (_, character) => character.toUpperCase());
+    button.dataset[property] = value;
+    return button;
+  }
 
-  $("#addf").onsubmit = async (e) => {
-    e.preventDefault();
-    const v = strip(Object.fromEntries(new FormData(e.target).entries()));
-    if (c.bool && !v.isCompleted) v.isCompleted = "false";
-    try { setStatus(await submit(c.add, v, `${c.single} added`)); e.target.reset(); c.list && loadItems(key); }
-    catch (err) { setStatus(err.message, true); }
-  };
-  manf.onsubmit = async (e) => {
-    e.preventDefault();
-    const { action, ...v } = strip(Object.fromEntries(new FormData(manf).entries()));
-    if (c.bool && action !== "del" && v.isCompleted === undefined) v.isCompleted = "false";
-    try { setStatus(await submit(action === "del" ? c.del : c.upd, v, action === "del" ? `${c.single} deleted` : `${c.single} updated`)); manf.reset(); toggleAction(); c.list && loadItems(key); }
-    catch (err) { setStatus(err.message, true); }
-  };
-  c.list && loadItems(key, manf);
-}
+  function addSectionAction(id, label, type, value, primary = false) {
+    const section = document.querySelector(`#${id}`);
+    const heading = section?.querySelector("h2");
+    if (!section || !heading) return;
+    const titleRow = html("div", "portfolio-section-heading");
+    heading.parentNode.insertBefore(titleRow, heading);
+    titleRow.appendChild(heading);
+    const actions = html("div", "portfolio-section-actions");
+    actions.appendChild(actionButton(label, type, value, primary));
+    titleRow.appendChild(actions);
+  }
 
-async function loadItems(key, form = null) {
-  const list = $("#list"); if (!list) return;
-  try {
-    const section = SECTIONS[key];
-    const res = await fetch(`${API_BASE_URL}${section.list}`, { cache: "no-store", credentials: "include" });
-    if (!res.ok) { list.innerHTML = `<p class="muted">No ${esc(section.single)} records found.</p>`; return; }
-    const tmp = document.createElement("div"); tmp.innerHTML = await res.text();
-    const items = [...tmp.querySelectorAll("p")].map((p) => ({ text: p.textContent.trim(), el: p })).filter((item) => item.text);
+  function renderSection(key, items) {
+    if (!Object.hasOwn(collectionValues, key)) return;
+    collectionValues[key] = items;
+    const section = document.querySelector(`#${key}`);
+    const cards = key === "skills" ? [...section.querySelectorAll("#skills-grid li")] : key === "projects" ? [...section.querySelectorAll("#projects-list .proj")] : [...section.querySelectorAll("#education-list .edu")];
+    items.forEach((item, index) => {
+      const card = cards[index];
+      if (!card || !item.id || card.querySelector(".portfolio-admin-actions")) return;
+      const actions = html("div", "portfolio-admin-actions");
+      const edit = actionButton("Edit", "edit", key);
+      const remove = actionButton("Delete", "delete", key);
+      edit.dataset.id = item.id;
+      remove.dataset.id = item.id;
+      actions.append(edit, remove);
+      card.appendChild(actions);
+    });
+  }
 
-    list.innerHTML = items.length
-      ? items.map(({ text }) => {
-          const id = parseItemId(text) ?? "";
-          const safeText = esc(text);
-          return `<div class="mini-skill" data-item-text="${esc(text)}">
-            <div>${safeText}</div>
-            <div class="btns"><button type="button" class="btn" data-edit-id="${id}">Edit</button></div>
-          </div>`;
-        }).join("")
-      : `<p class="muted">No ${esc(section.single)} records found.</p>`;
+  async function loadRecords() {
+    await Promise.all(Object.entries(collections).map(async ([key, config]) => {
+      try {
+        const response = await fetch(`${API_BASE_URL}${config.list}`, { cache: "no-store", credentials: "include", headers: { Accept: "text/html" } });
+        if (response.status !== 404 && !response.ok) throw new Error(`Unable to load ${config.label} records.`);
+        const items = response.status === 404 ? [] : parseRecords(await response.text());
+        renderSection(key, items);
+      } catch { /* The public portfolio already displays a section-specific load message. */ }
+    }));
+  }
 
-    if (form) bindItemActions(list, key, form);
-  } catch { list.innerHTML = `<p class="muted">Unable to load ${esc(SECTIONS[key].single)} records.</p>`; }
-}
+  function parseRecords(markup) {
+    const parsed = new DOMParser().parseFromString(markup, "text/html");
+    return [...parsed.querySelectorAll("p")].map((paragraph) => {
+      const record = {};
+      let key = "";
+      paragraph.childNodes.forEach((node) => {
+        if (node.nodeType === Node.ELEMENT_NODE && node.tagName === "STRONG") {
+          key = node.textContent.replace(/:$/, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+          record[key] = "";
+        } else if (key && node.nodeType === Node.TEXT_NODE) {
+          record[key] += node.nodeValue.replace(/^\s*\|\s*/, "").replace(/\s*\|\s*$/, "").trim();
+        }
+      });
+      return record;
+    }).filter((record) => record.id);
+  }
+
+  async function loadProfile() {
+    try {
+      const profile = await fetchProfile();
+      Object.assign(profileValues, {
+        name: profile.name, email: profile.email, phone: profile.phone, address: profile.address,
+        githubURL: profile.github, linkedinURL: profile.linkedin, profileImage: profile.image, aboutMe: profile.about
+      });
+    } catch { /* The public page remains viewable while the backend is unavailable. */ }
+  }
+
+  function handleClick(event) {
+    const button = event.target.closest("button");
+    if (!button) return;
+    if (button.hasAttribute("data-profile-edit")) return openProfileEditor(button.dataset.profileEdit);
+    if (button.hasAttribute("data-record-add")) return openRecordEditor(button.dataset.recordAdd, null);
+    if (button.hasAttribute("data-edit")) return openRecordEditor(button.dataset.edit, button.dataset.id);
+    if (button.hasAttribute("data-delete")) return deleteRecord(button.dataset.delete, button.dataset.id, button);
+    if (button.hasAttribute("data-editor-cancel")) {
+      const editor = button.closest(".portfolio-editor");
+      editor.hidden = true;
+      editor.replaceChildren();
+    }
+  }
+
+  function openProfileEditor(group) {
+    const editor = document.querySelector(`#${group}-editor`);
+    const fields = profileGroups[group];
+    renderForm(editor, `Edit ${group === "identity" ? "intro" : group === "about" ? "about me" : "contact details"}`, fields, (name) => profileValues[name], { profileGroup: group });
+  }
+
+  function openRecordEditor(key, id) {
+    const entry = id ? collectionValues[key].find((record) => String(record.id) === String(id)) : null;
+    if (id && !entry) return setStatus("That entry could not be loaded. Refresh the portfolio and try again.", true);
+    const editor = document.querySelector(`#${key}-editor`);
+    const config = collections[key];
+    const form = renderForm(editor, `${entry ? "Edit" : "Add"} ${config.label}`, config.fields,
+      (name) => entry ? getRecordValue(key, entry, name) : (name === "isCompleted" ? false : ""),
+      { recordForm: key, mode: entry ? "edit" : "add", id: entry?.id || "" });
+    editor.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    form.querySelector("input,textarea")?.focus({ preventScroll: true });
+  }
+
+  function renderForm(editor, title, fields, valueFor, metadata) {
+    const form = html("form", "stack-form portfolio-editor-form");
+    Object.entries(metadata).forEach(([key, value]) => { if (value !== "") form.dataset[key] = value; });
+    const top = html("div", "portfolio-editor-title");
+    top.append(html("h3", "", title));
+    const close = actionButton("×", "editor-cancel", "");
+    close.classList.add("portfolio-editor-close");
+    close.setAttribute("aria-label", "Close editor");
+    top.appendChild(close);
+    form.appendChild(top);
+    fields.forEach(([name, label, type = "text", required = false]) => {
+      const fieldLabel = html("label", "", type === "check" ? "" : label);
+      let control;
+      if (type === "area") {
+        control = html("textarea");
+        control.rows = 4;
+      } else {
+        control = html("input");
+        control.type = type === "check" ? "checkbox" : type;
+      }
+      control.name = name;
+      if (type === "check") {
+        control.value = "true";
+        control.checked = Boolean(valueFor(name));
+        fieldLabel.classList.add("check-row");
+        fieldLabel.append(control, document.createTextNode(` ${label}`));
+      } else {
+        control.value = valueFor(name) || "";
+        if (required) control.required = true;
+        fieldLabel.appendChild(control);
+      }
+      form.appendChild(fieldLabel);
+    });
+    const actions = html("div", "btns");
+    const save = html("button", "btn primary", "Save changes");
+    save.type = "submit";
+    const cancel = actionButton("Cancel", "editor-cancel", "");
+    actions.append(save, cancel);
+    form.appendChild(actions);
+    editor.replaceChildren(form);
+    editor.hidden = false;
+    return form;
+  }
+
+  function getRecordValue(key, record, name) {
+    const fields = {
+      skills: { skillName: ["name", "skillname"], isCompleted: ["status", "iscompleted"] },
+      projects: { projectName: ["project", "projectname"], projectDescription: ["description"], technologiesUsed: ["technologies", "technologiesused"], githubUrl: ["github", "githuburl"], liveUrl: ["liveurl", "live"], isCompleted: ["status", "iscompleted"] },
+      education: { degree: ["degree"], institution: ["institution"], yearOfPassing: ["yearofpassing"], grade: ["grade"], description: ["description"] }
+    }[key][name];
+    const value = fields.map((field) => record[field]).find((candidate) => candidate !== undefined) || "";
+    return name === "isCompleted" ? /completed|true|yes/i.test(value) : value;
+  }
+
+  async function handleSubmit(event) {
+    const form = event.target.closest(".portfolio-editor-form");
+    if (!form) return;
+    event.preventDefault();
+    const button = event.submitter;
+    if (form.dataset.profileGroup) return saveProfile(form, button);
+    return saveRecord(form, button);
+  }
+
+  async function saveProfile(form, button) {
+    const values = Object.fromEntries(profileKeys.map((key) => [key, profileValues[key]]));
+    Object.assign(values, Object.fromEntries(new FormData(form).entries()));
+    try {
+      await withBusyButton(button, "Saving…", async () => {
+        await submit(profileEndpoint, values, "Profile updated");
+        await loadProfile();
+        closeEditor(form);
+        window.refreshPortfolio?.();
+        setStatus("Portfolio section updated.");
+      });
+    } catch (error) { setStatus(error.message, true); }
+  }
+
+  async function saveRecord(form, button) {
+    const key = form.dataset.recordForm;
+    const config = collections[key];
+    const editMode = form.dataset.mode === "edit";
+    const payload = Object.fromEntries(new FormData(form).entries());
+    config.fields.filter((field) => field[2] === "check").forEach(([name]) => { payload[name] = String(form.elements[name].checked); });
+    if (editMode) payload.id = form.dataset.id;
+    try {
+      await withBusyButton(button, editMode ? "Saving…" : "Adding…", async () => {
+        await submit(editMode ? config.update : config.add, payload, `${config.label} saved`);
+        closeEditor(form);
+        await loadRecords();
+        window.refreshPortfolio?.();
+        setStatus(`${config.label[0].toUpperCase()}${config.label.slice(1)} ${editMode ? "updated" : "added"}.`);
+      });
+    } catch (error) { setStatus(error.message, true); }
+  }
+
+  async function deleteRecord(key, id, button) {
+    if (!id || !confirm(`Delete this ${collections[key].label}? This cannot be undone.`)) return;
+    try {
+      await withBusyButton(button, "Deleting…", async () => {
+        await submit(collections[key].remove, { id }, `${collections[key].label} deleted`);
+        await loadRecords();
+        window.refreshPortfolio?.();
+        setStatus(`${collections[key].label[0].toUpperCase()}${collections[key].label.slice(1)} deleted.`);
+      });
+    } catch (error) { setStatus(error.message, true); }
+  }
+
+  function closeEditor(form) {
+    const editor = form.closest(".portfolio-editor");
+    editor.hidden = true;
+    editor.replaceChildren();
+  }
+
+  preparePortfolioEditing();
+})();

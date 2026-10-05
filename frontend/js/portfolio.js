@@ -14,7 +14,7 @@ const parseRecords = (markup) => {
     let key = "";
     paragraph.childNodes.forEach((node) => {
       if (node.nodeType === Node.ELEMENT_NODE && node.tagName === "STRONG") {
-        key = node.textContent.replace(/:$/, "").trim().toLowerCase();
+        key = node.textContent.replace(/:$/, "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
         record[key] = "";
       } else if (key && node.nodeType === Node.TEXT_NODE) {
         record[key] += node.textContent.replace(/^\s*\|\s*/, "").replace(/\s*\|\s*$/, "").trim();
@@ -22,6 +22,16 @@ const parseRecords = (markup) => {
     });
     return record;
   }).filter((record) => Object.values(record).some(Boolean));
+};
+
+const notifyPortfolioEditor = (section, records) => {
+  window.PortfolioEditor?.renderSection(section, records);
+};
+const adminRecordActions = (section, record) => {
+  if (getUser()?.role !== "admin" || !record.id) return null;
+  const actions = el("div", "portfolio-admin-actions");
+  actions.innerHTML = `<button class="btn" type="button" data-edit="${section}" data-id="${esc(record.id)}">Edit</button><button class="btn danger" type="button" data-delete="${section}" data-id="${esc(record.id)}">Delete</button>`;
+  return actions;
 };
 
 const fetchRecords = async (path) => {
@@ -41,6 +51,7 @@ const loadSkills = async () => {
     const skills = await fetchRecords("/admin/skill");
     const grid = $("#skills-grid");
     grid.replaceChildren();
+    notifyPortfolioEditor("skills", skills);
     if (!skills.length) return showSectionMessage("#skills-grid", "No skills added yet.");
 
     const group = el("div", "sg");
@@ -49,11 +60,14 @@ const loadSkills = async () => {
     skills.forEach((skill) => {
       const item = textEl("li", "", skill.name || "");
       if (skill.status) item.appendChild(textEl("small", "", ` ${skill.status}`));
+      const actions = adminRecordActions("skills", skill);
+      if (actions) item.appendChild(actions);
       list.appendChild(item);
     });
     group.appendChild(list);
     grid.appendChild(group);
   } catch {
+    notifyPortfolioEditor("skills", []);
     showSectionMessage("#skills-grid", "Skills are temporarily unavailable.");
   }
 };
@@ -63,6 +77,7 @@ const loadProjects = async () => {
     const projects = await fetchRecords("/admin/myProject");
     const list = $("#projects-list");
     list.replaceChildren();
+    notifyPortfolioEditor("projects", projects);
     if (!projects.length) return showSectionMessage("#projects-list", "No projects added yet.");
 
     projects.forEach((project) => {
@@ -75,7 +90,7 @@ const loadProjects = async () => {
           .forEach((technology) => tagList.appendChild(textEl("span", "tag", technology)));
         article.appendChild(tagList);
       }
-      [["GitHub", project.github], ["Live project", project["live url"]]].forEach(([label, value]) => {
+      [["GitHub", project.github], ["Live project", project.liveurl]].forEach(([label, value]) => {
         const href = safeUrl(value);
         if (!href) return;
         const link = textEl("a", "link", label);
@@ -84,9 +99,12 @@ const loadProjects = async () => {
         link.rel = "noopener";
         article.appendChild(link);
       });
+      const actions = adminRecordActions("projects", project);
+      if (actions) article.appendChild(actions);
       list.appendChild(article);
     });
   } catch {
+    notifyPortfolioEditor("projects", []);
     showSectionMessage("#projects-list", "Projects are temporarily unavailable.");
   }
 };
@@ -96,24 +114,28 @@ const loadEducation = async () => {
     const educations = await fetchRecords("/admin/myEducation");
     const container = $("#education-list");
     container.replaceChildren();
+    notifyPortfolioEditor("education", educations);
     if (!educations.length) return showSectionMessage("#education-list", "No education added yet.");
 
     educations.forEach((education) => {
       const item = el("article", "edu");
       item.appendChild(textEl("h3", "", education.degree || "Education"));
-      const details = [education.institution, education["year of passing"], education.grade].filter(Boolean);
+      const details = [education.institution, education.yearofpassing, education.grade].filter(Boolean);
       if (details.length) item.appendChild(textEl("p", "", details.join(" · ")));
       if (education.description) item.appendChild(textEl("p", "muted", education.description));
+      const actions = adminRecordActions("education", education);
+      if (actions) item.appendChild(actions);
       container.appendChild(item);
     });
   } catch {
+    notifyPortfolioEditor("education", []);
     showSectionMessage("#education-list", "Education is temporarily unavailable.");
   }
 };
 
 // dashboard link goes to the right place for whoever is signed in
 const who = getUser();
-$("#dash-link").href = who ? (who.role === "admin" ? "admin-dashboard.html" : "user-dashboard.html") : "index.html";
+$("#dash-link").href = who ? (who.role === "admin" ? "#top" : "user-dashboard.html") : "index.html";
 $("#dash-link").textContent = who ? "Dashboard" : "Home";
 
 // links
@@ -197,10 +219,14 @@ loadSkills();
 loadProjects();
 loadEducation();
 
+window.refreshPortfolio = () => { loadProfile(); loadSkills(); loadProjects(); loadEducation(); };
+
 // mobile menu
 const btn = document.querySelector(".menu-btn"), nav = $("#nav-links");
-btn.onclick = () => { const o = nav.classList.toggle("open"); btn.setAttribute("aria-expanded", o); };
-nav.addEventListener("click", e => { if (e.target.tagName === "A") { nav.classList.remove("open"); btn.setAttribute("aria-expanded", false); } });
+const closeMenu = () => { nav.classList.remove("open"); btn.setAttribute("aria-expanded", "false"); };
+btn.onclick = () => { const open = nav.classList.toggle("open"); btn.setAttribute("aria-expanded", String(open)); };
+nav.addEventListener("click", (e) => { if (e.target.closest("a")) closeMenu(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeMenu(); });
 
 // active nav link
 const links = [...nav.querySelectorAll("a")];

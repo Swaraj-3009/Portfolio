@@ -12,7 +12,7 @@ function init() {
 
 function renderGuest() {
   $("#account").innerHTML = `<h3>My Profile</h3><p class="muted">You are browsing as a guest, so there is no account to edit. Log in or register to create a profile you can edit.</p>
-    <div class="btns" style="margin-top:16px"><a class="btn primary" href="login.html">Login</a><a class="btn" href="register.html">Register</a></div>`;
+    <div class="btns guest-actions"><a class="btn primary" href="login.html">Sign in</a><a class="btn" href="register.html">Create account</a></div>`;
 }
 
 /* My Profile: view mode, with an Edit button that switches to a form */
@@ -27,7 +27,7 @@ function renderAccount() {
       $("#edit").onclick = () => { edit = true; setStatus(""); draw(); };
       return;
     }
-    box.innerHTML = `<h3 style="margin-bottom:16px">Edit profile</h3>
+    box.innerHTML = `<h3 class="section-heading">Edit profile</h3>
       <form id="f" class="stack-form">
         <label>Username<input name="username" value="${esc(user.name)}" required></label>
         <label>Email<input name="email" type="email" value="${esc(email)}"></label>
@@ -40,21 +40,28 @@ function renderAccount() {
       e.preventDefault();
       const v = Object.fromEntries(new FormData(e.target).entries()), done = [];
       try {
-        if (v.username.trim() !== user.name) {
-          await submit("/user/updateUsername", { username: v.username.trim(), password: v.password }, "ok");
-          if (email) localStorage.setItem("email:" + v.username.trim(), email);
-          user.name = v.username.trim(); setUser(user); mountTopbar(user); done.push("username");
-        }
-        if (v.email && v.email !== email) {
-          await submit("/user/updateUserEmail", { email: v.email, password: v.password }, "ok");
-          localStorage.setItem(emailKey(), v.email); done.push("email");
-        }
-        if (v.newPassword) {
-          await submit("/user/updateUserPassword", { currentPassword: v.password, newPassword: v.newPassword }, "ok");
-          done.push("password");
-        }
-        edit = false; draw();
-        setStatus(done.length ? `Updated ${done.join(", ")}.` : "No changes to save.");
+        await withBusyButton(e.submitter, "Saving changes…", async () => {
+          e.target.setAttribute("aria-busy", "true");
+          try {
+            if (v.username.trim() !== user.name) {
+              await submit("/user/updateUsername", { username: v.username.trim(), password: v.password }, "ok");
+              if (email) localStorage.setItem("email:" + v.username.trim(), email);
+              user.name = v.username.trim(); setUser(user); mountTopbar(user); done.push("username");
+            }
+            if (v.email && v.email !== email) {
+              await submit("/user/updateUserEmail", { email: v.email, password: v.password }, "ok");
+              localStorage.setItem(emailKey(), v.email); done.push("email");
+            }
+            if (v.newPassword) {
+              await submit("/user/updateUserPassword", { currentPassword: v.password, newPassword: v.newPassword }, "ok");
+              done.push("password");
+            }
+            edit = false; draw();
+            setStatus(done.length ? `Updated ${done.join(", ")}.` : "No changes to save.");
+          } finally {
+            e.target.removeAttribute("aria-busy");
+          }
+        });
       } catch (err) {
         setStatus(done.length ? `Saved ${done.join(", ")}, but: ${err.message}` : err.message, true);
       }

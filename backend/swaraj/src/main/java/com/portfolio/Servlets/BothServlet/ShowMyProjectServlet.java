@@ -51,6 +51,8 @@ public class ShowMyProjectServlet extends HttpServlet {
                 .append(project.getGithubURL() == null ? "" : project.getGithubURL())
                 .append(" | <strong>Live URL:</strong> ")
                 .append(project.getLiveURL() == null ? "" : project.getLiveURL())
+                .append(" | <strong>Status:</strong> ")
+                .append(Boolean.TRUE.equals(project.getIsCompleted()) ? "Completed" : "In progress")
                 .append("</p>");
         }
 

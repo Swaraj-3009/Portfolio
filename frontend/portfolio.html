@@ -14,13 +14,14 @@
 <body>
 <header class="nav">
   <a class="brand" href="#top" aria-label="Home">Swaraj</a>
-  <button class="menu-btn" aria-label="Menu" aria-expanded="false">Menu</button>
+  <button class="menu-btn" aria-label="Toggle navigation" aria-controls="nav-links" aria-expanded="false">Menu</button>
   <nav id="nav-links">
-    <a href="#skills">Skills</a><a href="#projects">Projects</a>
+    <a href="#about">About</a><a href="#skills">Skills</a><a href="#projects">Projects</a>
     <a href="#education">Education</a><a href="#contact">Contact</a>
     <a id="dash-link" href="index.html">Dashboard</a>
   </nav>
 </header>
+<div class="wrap admin-status" id="status" role="status" aria-live="polite"></div>
 
 <main id="top">
 <section class="hero wrap">
@@ -38,30 +39,31 @@
   <div class="photo" id="photo" aria-label="Profile photo"></div>
 </section>
 
-<nav class="tabs" id="tabs" aria-label="Admin portfolio sections">
-  <a href="#profile">My Profile</a><a href="#education">My Education</a><a href="#skills">My Skills</a><a href="#projects">My Projects</a>
-</nav>
-<div class="status" id="status" aria-live="polite"></div>
-<div class="stack" id="panel"></div>
-
 <section class="wrap path-wrap" aria-label="Learning path">
   <h2 class="small-h">Learning path</h2>
   <ol class="path" id="path"></ol>
 </section>
 
+<section id="about" class="wrap sec">
+  <h2>About</h2>
+  <div class="prose">
+    <p id="profile-about"></p>
+  </div>
+</section>
+
 <section id="skills" class="wrap sec">
   <h2>Skills</h2>
-  <div class="skills" id="skills-grid"></div>
+  <div class="skills" id="skills-grid"><p class="muted loading-state">Loading skills…</p></div>
 </section>
 
 <section id="projects" class="wrap sec">
   <h2>Projects</h2>
-  <div id="projects-list"></div>
+  <div id="projects-list"><p class="muted loading-state">Loading projects…</p></div>
 </section>
 
 <section id="education" class="wrap sec">
   <h2>Education</h2>
-  <div class="edu-list" id="education-list"></div>
+  <div class="edu-list" id="education-list"><p class="muted loading-state">Loading education…</p></div>
 </section>
 
 <section id="contact" class="wrap sec">
@@ -81,7 +83,7 @@
 <footer class="wrap foot">&copy; <span id="yr"></span> <span id="footer-name">Swaraj</span></footer>
 <script src="js/data.js"></script>
 <script src="js/common.js"></script>
-<script src="js/admin.js"></script>
 <script src="js/portfolio.js"></script>
+<script src="js/admin.js"></script>
 </body>
 </html>

@@ -12,6 +12,9 @@ form.addEventListener("submit", async (e) => {
   v.username = v.username.trim();
   setStatus("Contacting the server...");
   submitBtn.disabled = true;
+  form.setAttribute("aria-busy", "true");
+  const idleLabel = submitBtn.textContent;
+  submitBtn.textContent = page === "register" ? "Creating account…" : "Signing in…";
   try {
     if (page === "register") {
       v.email = v.email.trim(); v.role = "user";
@@ -31,5 +34,7 @@ form.addEventListener("submit", async (e) => {
     setStatus(err.message, true);
   } finally {
     submitBtn.disabled = false;
+    submitBtn.textContent = idleLabel;
+    form.removeAttribute("aria-busy");
   }
 });

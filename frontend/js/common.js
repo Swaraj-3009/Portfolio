@@ -25,6 +25,22 @@ function mountTopbar(u) {
 function setStatus(text, isError) {
   const s = $("#status"); if (!s) return;
   s.textContent = text || ""; s.classList.toggle("error", !!isError);
+  s.setAttribute("role", isError ? "alert" : "status");
+}
+
+async function withBusyButton(button, busyLabel, action) {
+  if (!button || button.disabled) return;
+  const originalLabel = button.textContent;
+  button.disabled = true;
+  button.textContent = busyLabel;
+  button.setAttribute("aria-busy", "true");
+  try {
+    return await action();
+  } finally {
+    button.disabled = false;
+    button.textContent = originalLabel;
+    button.removeAttribute("aria-busy");
+  }
 }
 
 /* ---- backend calls (same endpoints and form encoding as before) ---- */
@@ -42,6 +58,10 @@ async function request(path, values) {
 }
 async function submit(path, values, fallback) {
   const { res, text } = await request(path, values);
+  const finalPath = new URL(res.url).pathname;
+  if (res.redirected && /\/(login|admin-login)\.html$/i.test(finalPath)) {
+    throw new Error("Your sign-in session has expired. Sign in again, then retry.");
+  }
   if (!res.ok) throw new Error(res.status >= 500 ? "The server could not complete this request. Check the backend logs." : plain(text) || `Request failed (${res.status}).`);
   return plain(text) || fallback;
 }

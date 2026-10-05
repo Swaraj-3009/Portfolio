@@ -1,17 +1,25 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"><link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/pages.css"><title>Admin | Swaraj Portfolio Hub</title></head>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Opening portfolio editor | Swaraj</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
 <body>
-<header class="bar"><a class="brand" href="index.html">Swaraj Portfolio Hub</a><div class="right" id="bar-right"></div></header>
-<main class="wrap page">
-  <p class="muted sm">Administrator</p>
-  <h2>Portfolio administration</h2>
-  <nav class="tabs" id="tabs">
-    <a href="#profile">My Profile</a><a href="#education">My Education</a><a href="#skills">My Skills</a><a href="#projects">My Projects</a>
-  </nav>
-  <div class="status" id="status" aria-live="polite"></div>
-  <div class="stack" id="panel"></div>
-</main>
-<script src="js/data.js"></script>
-<script src="js/common.js"></script>
-<script src="js/admin.js"></script>
-</body></html>
+  <main class="wrap page">
+    <section class="panel">
+      <h1>Opening your portfolio editor…</h1>
+      <p class="muted">The admin workspace now lives in the portfolio itself.</p>
+      <p><a class="btn primary" href="portfolio.html#top">Continue to portfolio</a></p>
+    </section>
+  </main>
+  <script src="js/data.js"></script>
+  <script src="js/common.js"></script>
+  <script>
+    const currentAdmin = requireRole("admin");
+    if (currentAdmin) location.replace("portfolio.html#top");
+  </script>
+</body>
+</html>
