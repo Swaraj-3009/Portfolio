@@ -16,11 +16,11 @@ import jakarta.servlet.http.HttpSession;
 //Admin login
 @WebServlet("/admin/login")
 public class AdminLoginServlet extends HttpServlet {
-    Admin admin = new Admin();
-    AdminService adminSer = new AdminService();
+    private final AdminService adminSer = new AdminService();
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
+        Admin admin = new Admin();
         admin.setUsername(req.getParameter("username"));
         admin.setPassword(req.getParameter("password"));
 
@@ -34,7 +34,8 @@ public class AdminLoginServlet extends HttpServlet {
             session.setAttribute("loggedInAdmin", loggedInAdmin);
             session.setMaxInactiveInterval(30 * 60);
 
-            resp.sendRedirect(req.getContextPath() + "/AdminDashboard.html");
+            resp.setContentType("text/plain;charset=UTF-8");
+            out.println("Admin Logged in");
         } catch (Exception e) {
             resp.setStatus(401);
             out.println("Invalid admin credentials");

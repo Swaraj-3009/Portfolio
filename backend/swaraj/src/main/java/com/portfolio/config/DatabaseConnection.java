@@ -24,6 +24,7 @@ public class DatabaseConnection {
     }
 
     public static Connection getConnection() throws Exception {
+        Class.forName("com.mysql.cj.jdbc.Driver");
         return DriverManager.getConnection(
             properties.getProperty("db.url"),
             properties.getProperty("db.username"),

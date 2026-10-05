@@ -15,11 +15,11 @@ import jakarta.servlet.annotation.WebServlet;
 
 @WebServlet("/user/updateUsername")
 public class UpdateUsernameServlet extends HttpServlet{
-    Users user = new Users();
-    UserService userSer = new UserService();
+    private final UserService userSer = new UserService();
 
     @Override 
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
+        Users user = new Users();
         user.setUsername(req.getParameter("username"));
         user.setPassword(req.getParameter("password"));
 
@@ -34,6 +34,7 @@ public class UpdateUsernameServlet extends HttpServlet{
         Users loggedInUser = (Users) session.getAttribute("loggedInUser");
 
         if(userSer.UpdateUsername(loggedInUser, user)){
+            loggedInUser.setUsername(user.getUsername());
             resp.setStatus(201);
             out.println("Username Updated");
         }

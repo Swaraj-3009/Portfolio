@@ -15,36 +15,33 @@ import jakarta.servlet.annotation.WebServlet;
 
 @WebServlet("/user/login")
 public class UserLoginServlet extends HttpServlet{
-    Users user = new Users();
-    UserService userSer = new UserService();
+    private final UserService userSer = new UserService();
 
     @Override 
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
-        user.setUsername(req.getParameter("username"));
-        user.setPassword(req.getParameter("password"));
-        user.setEmail(req.getParameter("email"));
-        user.setRole(req.getParameter("role"));
+        String username = req.getParameter("username");
+        String password = req.getParameter("password");
 
         PrintWriter out = resp.getWriter();
 
-        if(userSer.loginUser(user.getUsername(), user.getPassword()) != null){
-            // Get or create session
-            HttpSession session = req.getSession(true);
-            req.changeSessionId();
+        try {
+            Users loggedInUser = userSer.loginUser(username, password);
+            if (loggedInUser != null) {
+                HttpSession session = req.getSession(true);
+                req.changeSessionId();
 
-            // Store logged-in user's details
-            session.setAttribute("loggedInUser", user);
+                session.setAttribute("loggedInUser", loggedInUser);
+                session.setMaxInactiveInterval(30 * 60);
 
-            // Optional: set session timeout (30 minutes)
-            session.setMaxInactiveInterval(30 * 60);
-
-            // Redirect to dashboard
-            resp.sendRedirect(req.getContextPath() + "/UserDashboard.html");
-
-        }
-        else{
+                resp.setContentType("text/plain;charset=UTF-8");
+                out.println("User logged in successfully");
+            } else {
+                resp.setStatus(401);
+                out.println("Invalid username or password");
+            }
+        } catch (RuntimeException e) {
             resp.setStatus(401);
-            out.println("Something went wrong");
+            out.println("Invalid username or password");
         }
     }
 }

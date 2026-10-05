@@ -140,12 +140,12 @@ public class AdminService {
     }
     public boolean updateMyEducation(Admin loggedInAdmin, MyEducation education){
         EducationDAO educationDao = new EducationDaoImpl();
-        MyEducation myEducation = new MyEducation();
-        myEducation.setId(education.getId());
-
         if (education == null || education.getId() <= 0) {
             return false;
         }
+        MyEducation myEducation = new MyEducation();
+        myEducation.setId(education.getId());
+
         if(isLoggedInAdminExist(loggedInAdmin)) {
             if (education.getDegree() != null) {
             myEducation.setDegree(education.getDegree());
@@ -197,12 +197,12 @@ public class AdminService {
     }
     public boolean updateProject(Admin loggedInAdmin, MyProject project){
         ProjectsDAO projectDao = new ProjectsDaoImpl();
-        MyProject myProject = new MyProject();
-        myProject.setId(project.getId());
-
         if (project == null || project.getId() <= 0) {
             return false;
         }
+        MyProject myProject = new MyProject();
+        myProject.setId(project.getId());
+
         if (isLoggedInAdminExist(loggedInAdmin)) {
             if (project.getProjectName() != null) {
                 myProject.setProjectName(project.getProjectName());

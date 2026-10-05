@@ -18,7 +18,7 @@ public class UserService {
             user.setUsername(username);
             user.setEmail(email);
             user.setPassword(password);
-            user.setRole(role);
+            user.setRole("user");
 
             if(userDao.addUser(user)){
                 return true;
@@ -49,16 +49,13 @@ public class UserService {
         return false;
     }
 
-    public boolean UpdatePassword(Users loggedInUser, Users user){
+    public boolean UpdatePassword(Users loggedInUser, String currentPassword, String newPassword){
         UserDAO userDao = new UserDaoImpl();
-
-        if(userDao.updateEmail(loggedInUser, user.getEmail(), user.getPassword())){
-            return true;
-        }
-        return false;
+        return userDao.updatePassword(loggedInUser, currentPassword, newPassword);
     }
 
     public boolean UpdateEmail(Users loggedInUser, Users user){
-        return false;
+        UserDAO userDao = new UserDaoImpl();
+        return userDao.updateEmail(loggedInUser, user.getEmail(), user.getPassword());
     }
 }

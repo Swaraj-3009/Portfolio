@@ -15,11 +15,11 @@ import jakarta.servlet.annotation.WebServlet;
 
 @WebServlet("/user/updateUserEmail")
 public class UpdateUserEmailServlet extends HttpServlet{
-    Users user = new Users();
-    UserService userSer = new UserService();
+    private final UserService userSer = new UserService();
 
     @Override 
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
+        Users user = new Users();
         user.setEmail(req.getParameter("email"));
         user.setPassword(req.getParameter("password"));
 
@@ -34,6 +34,7 @@ public class UpdateUserEmailServlet extends HttpServlet{
         Users loggedInUser = (Users) session.getAttribute("loggedInUser");
 
         if(userSer.UpdateEmail(loggedInUser, user)){
+            loggedInUser.setEmail(user.getEmail());
             resp.setStatus(201);
             out.println("Email Updated");
         }
