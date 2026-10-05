@@ -77,6 +77,66 @@ async function profileTab() {
 }
 
 /* ---- Education / Skills / Projects: add form + update-or-delete by ID ---- */
+function normalizeListKey(value) {
+  return String(value || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
+function parseItemId(text) {
+  const match = String(text || "").match(/ID:\s*(\d+)/i);
+  return match ? Number(match[1]) : null;
+}
+
+function fillUpdateFormFromText(key, text, form) {
+  const raw = String(text || "");
+  const data = {};
+  raw.split("|").map((part) => part.trim()).filter(Boolean).forEach((part) => {
+    const match = part.match(/^(.+?):\s*(.*)$/);
+    if (!match) return;
+    const keyName = normalizeListKey(match[1]);
+    data[keyName] = match[2].trim();
+  });
+
+  if (key === "skills") {
+    const name = data.name || data.skillname || "";
+    const status = data.status || data.iscompleted || "";
+    form.elements.skillName.value = name;
+    form.elements.isCompleted.checked = /completed|true|yes/i.test(status);
+  }
+
+  if (key === "education") {
+    form.elements.degree.value = data.degree || "";
+    form.elements.institution.value = data.institution || "";
+    form.elements.yearOfPassing.value = data.yearofpassing || "";
+    form.elements.grade.value = data.grade || "";
+    form.elements.description.value = data.description || "";
+  }
+
+  if (key === "projects") {
+    form.elements.projectName.value = data.project || data.projectname || "";
+    form.elements.projectDescription.value = data.description || "";
+    form.elements.technologiesUsed.value = data.technologies || data.technologiesused || "";
+    form.elements.githubUrl.value = data.github || data.githuburl || "";
+    form.elements.liveUrl.value = data.liveurl || data.live || "";
+    form.elements.isCompleted.checked = /completed|true|yes/i.test(data.status || data.iscompleted || "");
+  }
+}
+
+function bindItemActions(list, key, form) {
+  list.querySelectorAll("[data-edit-id]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const id = Number(button.dataset.editId);
+      if (!Number.isFinite(id)) return;
+      form.elements.id.value = id;
+      form.elements.action.value = "upd";
+      const itemText = button.closest("[data-item-text]")?.dataset.itemText || "";
+      fillUpdateFormFromText(key, itemText, form);
+      const optPane = form.querySelector("[data-opt]");
+      if (optPane) optPane.hidden = false;
+      form.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  });
+}
+
 function manageTab(key) {
   const c = SECTIONS[key], upd = c.updFields ?? c.fields;
   panel.innerHTML = `
@@ -93,7 +153,12 @@ function manageTab(key) {
     </section>`;
 
   const manf = $("#manf");
-  manf.elements.action.onchange = () => ($("[data-opt]").hidden = manf.elements.action.value === "del");
+  const toggleAction = () => {
+    const opt = $("[data-opt]");
+    opt.hidden = manf.elements.action.value === "del";
+  };
+  manf.elements.action.onchange = toggleAction;
+  toggleAction();
   const strip = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== ""));
 
   $("#addf").onsubmit = async (e) => {
@@ -107,20 +172,32 @@ function manageTab(key) {
     e.preventDefault();
     const { action, ...v } = strip(Object.fromEntries(new FormData(manf).entries()));
     if (c.bool && action !== "del" && v.isCompleted === undefined) v.isCompleted = "false";
-    try { setStatus(await submit(action === "del" ? c.del : c.upd, v, action === "del" ? `${c.single} deleted` : `${c.single} updated`)); manf.reset(); c.list && loadItems(key); }
+    try { setStatus(await submit(action === "del" ? c.del : c.upd, v, action === "del" ? `${c.single} deleted` : `${c.single} updated`)); manf.reset(); toggleAction(); c.list && loadItems(key); }
     catch (err) { setStatus(err.message, true); }
   };
-  c.list && loadItems(key);
+  c.list && loadItems(key, manf);
 }
 
-async function loadItems(key) {
+async function loadItems(key, form = null) {
   const list = $("#list"); if (!list) return;
   try {
     const section = SECTIONS[key];
     const res = await fetch(`${API_BASE_URL}${section.list}`, { cache: "no-store", credentials: "include" });
     if (!res.ok) { list.innerHTML = `<p class="muted">No ${esc(section.single)} records found.</p>`; return; }
     const tmp = document.createElement("div"); tmp.innerHTML = await res.text();
-    const items = [...tmp.querySelectorAll("p")].map((p) => p.textContent.trim()).filter(Boolean);
-    list.innerHTML = items.length ? items.map((t) => `<div class="mini-skill">${esc(t)}</div>`).join("") : `<p class="muted">No ${esc(section.single)} records found.</p>`;
+    const items = [...tmp.querySelectorAll("p")].map((p) => ({ text: p.textContent.trim(), el: p })).filter((item) => item.text);
+
+    list.innerHTML = items.length
+      ? items.map(({ text }) => {
+          const id = parseItemId(text) ?? "";
+          const safeText = esc(text);
+          return `<div class="mini-skill" data-item-text="${esc(text)}">
+            <div>${safeText}</div>
+            <div class="btns"><button type="button" class="btn" data-edit-id="${id}">Edit</button></div>
+          </div>`;
+        }).join("")
+      : `<p class="muted">No ${esc(section.single)} records found.</p>`;
+
+    if (form) bindItemActions(list, key, form);
   } catch { list.innerHTML = `<p class="muted">Unable to load ${esc(SECTIONS[key].single)} records.</p>`; }
 }
