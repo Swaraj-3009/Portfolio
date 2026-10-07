@@ -6,11 +6,11 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.portfolio.DAO.RelationShipDAO;
+import com.portfolio.DAO.RelationshipDAO;
 import com.portfolio.config.DatabaseConnection;
 import com.portfolio.model.Users;
 
-public class RelationshipDaoImpl implements RelationShipDAO {
+public class RelationshipDaoImpl implements RelationshipDAO {
 
     @Override
     public List<Users> getFollowers() {

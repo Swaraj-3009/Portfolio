@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.portfolio.model.Users;
 
-public interface RelationShipDAO {
+public interface RelationshipDAO {
     public List<Users> getFollowers();
     public boolean updateToFriends(Users user);
     public List<Users> getFriends();
