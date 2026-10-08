@@ -31,7 +31,10 @@
     addSectionAction("education", "+ Add education", "record-add", "education", true);
     addSectionAction("education", "Arrange", "arrange", "education");
     const dashboardLink = document.querySelector("#dash-link");
-    if (dashboardLink) dashboardLink.textContent = "Editing portfolio";
+    if (dashboardLink) {
+      dashboardLink.href = "admin-dashboard.html";
+      dashboardLink.textContent = "Community";
+    }
     const nav = document.querySelector("#nav-links");
     if (nav) nav.appendChild(actionButton("Log out", "admin-logout", ""));
 
