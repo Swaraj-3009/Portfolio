@@ -30,6 +30,7 @@ public class RequestFriendServlet extends HttpServlet {
         }
 
         if(relationSer.requestFriends(loggedInUser)){
+            loggedInUser.setRole("requestedFriends");
             resp.setStatus(201);
             out.println("Friend Request Sent");
         }

@@ -34,7 +34,8 @@ public class ShowFollowersServlet extends HttpServlet {
             return;
         }
 
-        String role = loggedInUser == null ? "admin" : loggedInUser.getRole();
+        String role = loggedInUser == null ? "admin"
+            : new RelationshipService().relationshipRole(loggedInUser.getUsername());
         if (loggedInAdmin == null && !"family".equals(role) && !"follower".equals(role)
                 && !"followers".equals(role) && !"friends".equals(role)) {
             resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

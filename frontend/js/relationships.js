@@ -3,20 +3,15 @@ function initRelationships(user) {
   const root = $("#relationships");
   if (!root) return;
 
-  let role = user.role === "user" ? "follower" : user.role;
-  const admin = role === "admin";
+  let role = user.role;
+  const admin = user.role === "admin";
   const adminSections = [
-        { key: "requestedFriend", title: "Friend requests", endpoint: "/relation/requestedFriend", action: "acceptFriend", actionLabel: "Accept" },
-        { key: "followers", title: "Followers", endpoint: "/relation/followers" },
-        { key: "friends", title: "Friends", endpoint: "/relation/friends", action: "addFamily", actionLabel: "Promote to family" },
-        { key: "family", title: "Family", endpoint: "/relation/family" }
-      ];
-  const userSections = [
-    { key: "family", title: "Family", endpoint: "/relation/family" },
+    { key: "requestedFriend", title: "Friend requests", endpoint: "/relation/requestedFriend" },
+    { key: "followers", title: "Followers", endpoint: "/relation/followers" },
     { key: "friends", title: "Friends", endpoint: "/relation/friends" },
-    { key: "followers", title: "Followers", endpoint: "/relation/followers" }
+    { key: "family", title: "Family", endpoint: "/relation/family" }
   ];
-  let sections = admin ? adminSections : userSections;
+  let sections = [];
 
   root.innerHTML = `<section aria-labelledby="relationships-heading">
     <div class="row"><h3 id="relationships-heading">Community</h3></div>
@@ -49,8 +44,22 @@ function initRelationships(user) {
   }
 
   async function loadRelationships() {
-    const queriedSections = admin ? adminSections : userSections;
-    const requests = queriedSections.map(async (item) => {
+    if (!admin) {
+      try {
+        role = await fetchText("/relation/myStatus");
+      } catch {
+        role = user.role === "user" ? "follower" : user.role;
+      }
+      if (role === "followers") role = "follower";
+    }
+    const userSections = role === "family"
+      ? [adminSections[3], adminSections[2], adminSections[1]]
+      : role === "friends"
+        ? [adminSections[2], adminSections[1]]
+        : role === "follower"
+          ? [adminSections[1]] : [];
+    sections = admin ? adminSections : userSections;
+    const requests = sections.map(async (item) => {
       try {
         return [item.key, { names: parseNames(await fetchText(item.endpoint)) }];
       } catch (error) {
@@ -60,13 +69,19 @@ function initRelationships(user) {
     const countsRequest = fetchText("/relation").then((text) => text.split(/\r?\n/).map((value) => value.trim()).filter(Boolean).map(Number));
     const [results, counts] = await Promise.all([Promise.all(requests), countsRequest.then((value) => value, () => null)]);
     const listsByKey = Object.fromEntries(results);
-    if (!admin) {
-      sections = userSections.filter((item) => !listsByKey[item.key]?.error);
-      role = listsByKey.family && !listsByKey.family.error ? "family"
-        : listsByKey.friends && !listsByKey.friends.error ? "friends" : "follower";
-      if (!sections.length) sections = [userSections[2]];
-    }
     lists.replaceChildren();
+    if (!admin && role === "requestedFriends") {
+      const pending = document.createElement("section");
+      pending.className = "relationship-section";
+      pending.appendChild(emptyMessage("Your friend request is pending admin approval."));
+      const cancel = document.createElement("button");
+      cancel.type = "button";
+      cancel.className = "btn danger";
+      cancel.dataset.relationshipAction = "cancelFriendRequest";
+      cancel.textContent = "Cancel request";
+      pending.appendChild(cancel);
+      lists.appendChild(pending);
+    }
     sections.forEach(({ key, title }) => {
       const section = document.createElement("section");
       section.className = "relationship-section";
@@ -122,14 +137,30 @@ function initRelationships(user) {
       const username = document.createElement("span");
       username.textContent = name;
       row.appendChild(username);
-      if (admin && item.action) {
+      const actions = admin && item.key === "requestedFriend"
+        ? [["acceptFriend", "Accept"], ["cancelFriendRequest", "Cancel request"]]
+        : admin && item.key === "friends"
+          ? [["addFamily", "Promote to family"]]
+          : admin && item.key === "family"
+            ? [["demoteFamily", "Demote to friend"]]
+            : !admin && role === "friends" && item.key === "friends" && name === user.name
+              ? [["demoteFriend", "Demote to follower"]]
+            : !admin && role === "family" && item.key === "family" && name === user.name
+              ? [["demoteFamily", "Leave family"]] : [];
+      actions.forEach(([action, label]) => {
         const button = document.createElement("button");
         button.type = "button";
-        button.className = `btn${item.action === "acceptFriend" ? " primary" : ""}`;
-        button.dataset.relationshipAction = item.action;
+        button.className = `btn${action === "acceptFriend" ? " primary" : action === "cancelFriendRequest" || action === "demoteFamily" ? " danger" : ""}`;
+        button.dataset.relationshipAction = action;
         button.dataset.username = name;
-        button.textContent = item.actionLabel;
+        button.textContent = label;
         row.appendChild(button);
+      });
+      if (actions.length > 1) {
+        const rowActions = document.createElement("div");
+        rowActions.className = "btns";
+        rowActions.append(...row.querySelectorAll("button"));
+        row.appendChild(rowActions);
       }
       list.appendChild(row);
     });
@@ -150,9 +181,7 @@ function initRelationships(user) {
     button.type = "button";
     button.className = "btn primary";
     button.dataset.requestFriend = "true";
-    const alreadyRequested = localStorage.getItem(`friendRequestSent:${user.name}`) === "true";
-    button.disabled = alreadyRequested;
-    button.textContent = alreadyRequested ? "Request sent" : "Send friend request";
+    button.textContent = "Send friend request";
     actions.appendChild(button);
     lists.appendChild(actions);
   }
@@ -164,10 +193,8 @@ function initRelationships(user) {
         await withBusyButton(requestButton, "Sending...", async () => {
           await submit("/relation/requestFriend", {}, "Friend Request Sent");
         });
-        localStorage.setItem(`friendRequestSent:${user.name}`, "true");
-        requestButton.textContent = "Request sent";
-        requestButton.disabled = true;
         setStatus("Friend request sent to the admin.");
+        await loadRelationships();
       } catch (error) {
         setStatus(error.message, true);
       }
@@ -178,10 +205,22 @@ function initRelationships(user) {
     const action = button.dataset.relationshipAction;
     const username = button.dataset.username;
     try {
-      await withBusyButton(button, action === "acceptFriend" ? "Accepting..." : "Promoting...", async () => {
-        await fetchText(`/relation/${action}`, { username });
+      const labels = { acceptFriend: "Accepting...", addFamily: "Promoting...", demoteFamily: "Demoting...", demoteFriend: "Demoting...", cancelFriendRequest: "Cancelling..." };
+      await withBusyButton(button, labels[action] || "Saving...", async () => {
+        if (action === "acceptFriend" || action === "addFamily") {
+          await fetchText(`/relation/${action}`, { username });
+        } else {
+          await submit(`/relation/${action}`, username ? { username } : {}, "Relationship updated");
+        }
       });
-      setStatus(action === "acceptFriend" ? `${username} is now a friend.` : `${username} is now family.`);
+      const messages = {
+        acceptFriend: `${username} is now a friend.`,
+        addFamily: `${username} is now family.`,
+        demoteFamily: username ? `${username} is now a friend.` : "You left the family group.",
+        cancelFriendRequest: username ? `${username}'s request was cancelled.` : "Your friend request was cancelled.",
+        demoteFriend: "You are now a follower."
+      };
+      setStatus(messages[action] || "Relationship updated.");
       await loadRelationships();
     } catch (error) {
       setStatus(error.message, true);

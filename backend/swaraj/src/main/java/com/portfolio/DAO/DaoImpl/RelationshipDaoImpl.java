@@ -13,6 +13,23 @@ import com.portfolio.model.Users;
 public class RelationshipDaoImpl implements RelationshipDAO {
 
     @Override
+    public String getRole(String username) {
+        String sql = "SELECT role FROM users WHERE username = ?";
+
+        try(Connection con = DatabaseConnection.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql)){
+                ps.setString(1, username);
+                try(ResultSet rs = ps.executeQuery()){
+                    return rs.next() ? rs.getString("role") : null;
+                }
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
     public List<Users> getFollowers() {
         String sql = "SELECT username, email FROM users WHERE role IN (?, ?)";
 
@@ -188,6 +205,37 @@ public class RelationshipDaoImpl implements RelationshipDAO {
             e.printStackTrace();
         }
         return new ArrayList<>();
+    }
+
+    @Override
+    public boolean demoteFamily(Users user) {
+        return updateRole(user, "family", "friends");
+    }
+
+    @Override
+    public boolean demoteFriend(Users user) {
+        return updateRole(user, "friends", "follower");
+    }
+
+    @Override
+    public boolean cancelFriendRequest(Users user) {
+        return updateRole(user, "requestedFriends", "follower");
+    }
+
+    private boolean updateRole(Users user, String currentRole, String nextRole) {
+        String sql = "UPDATE users SET role = ? WHERE username = ? AND role = ?";
+
+        try(Connection con = DatabaseConnection.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql)){
+                ps.setString(1, nextRole);
+                ps.setString(2, user.getUsername());
+                ps.setString(3, currentRole);
+                return ps.executeUpdate() > 0;
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+        return false;
     }
 
 }
