@@ -15,8 +15,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-@WebServlet("/relation/friends")
-public class ShowFriendsServlet extends HttpServlet{
+@WebServlet("/relation/followers")
+public class ShowFollowersServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         HttpSession session = req.getSession(false);
@@ -35,19 +35,19 @@ public class ShowFriendsServlet extends HttpServlet{
         }
 
         String role = loggedInUser == null ? "admin" : loggedInUser.getRole();
-        if (loggedInAdmin == null && !"family".equals(role) && !"friends".equals(role)) {
+        if (loggedInAdmin == null && !"family".equals(role) && !"followers".equals(role) && !"friends".equals(role)) {
             resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            resp.getWriter().println("You are not allowed to view this friend list");
+            resp.getWriter().println("You are not allowed to view this follower list");
             return;
         }
 
         RelationshipService relationSer = new RelationshipService();
         PrintWriter out = resp.getWriter();
-        List<Users> friends = relationSer.friends();
+        List<Users> followers = relationSer.followers();
 
-        if (friends != null) {
-            for (Users friend : friends) {
-                out.println(friend.getUsername());
+        if (followers != null) {
+            for (Users follower : followers) {
+                out.println(follower.getUsername());
             }
         }
     }

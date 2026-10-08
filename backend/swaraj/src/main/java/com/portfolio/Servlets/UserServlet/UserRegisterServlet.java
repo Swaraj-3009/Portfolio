@@ -23,7 +23,7 @@ public class UserRegisterServlet extends HttpServlet {
 
         PrintWriter out = resp.getWriter();
 
-        if(userSer.registerUser(username, password, email, "user")){
+        if(userSer.registerUser(username, password, email, "follower")){
             resp.setStatus(201);
             out.println("User Registered");
         }

@@ -13,8 +13,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-@WebServlet("/relation/acceptFriend")
-public class AcceptFriendServlet extends HttpServlet{
+@WebServlet("/relation/addFamily")
+public class AddFriendToFamily extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         HttpSession session = req.getSession(false);
@@ -36,12 +36,12 @@ public class AcceptFriendServlet extends HttpServlet{
         Users user = new Users();
         user.setUsername(username.trim());
 
-        if (new RelationshipService().addFriends(user)) {
+        if (new RelationshipService().addFamily(user)) {
             resp.setStatus(HttpServletResponse.SC_OK);
-            resp.getWriter().println("Friend Request Accepted");
+            resp.getWriter().println(user.getUsername() + "is now Family");
         } else {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().println("Friend Request Could Not Be Accepted");
+            resp.getWriter().println("Not Promoted to Family");
         }
     }
 }

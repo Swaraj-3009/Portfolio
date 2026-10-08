@@ -18,7 +18,7 @@ public class UserService {
             user.setUsername(username);
             user.setEmail(email);
             user.setPassword(password);
-            user.setRole("user");
+            user.setRole(role);
 
             if(userDao.addUser(user)){
                 return true;
