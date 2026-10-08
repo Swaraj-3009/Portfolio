@@ -16,20 +16,25 @@ import jakarta.servlet.http.HttpSession;
 
 @WebServlet("/relation")
 public class ShowRelationServlet extends HttpServlet {
-    @Override 
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        HttpSession session = req.getSession(false);
+        Users loggedInUser = session == null ? null : (Users) session.getAttribute("loggedInUser");
+        Admin loggedInAdmin = session == null ? null : (Admin) session.getAttribute("loggedInAdmin");
+
+        if (loggedInUser == null && loggedInAdmin == null) {
+            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            resp.getWriter().println("Authentication required");
+            return;
+        }
+
         RelationshipService relationSer = new RelationshipService();
         PrintWriter out = resp.getWriter();
+        out.println(relationSer.followersCount());
+        out.println(relationSer.friendsCount());
 
-        out.println(String.valueOf(relationSer.followersCount()));
-        out.println(String.valueOf(relationSer.friendsCount()));
-
-        HttpSession session = req.getSession(false);
-        Users loggedInUser = (Users) session.getAttribute("loggedInUser");
-        Admin loggedInAdmin = (Admin) session.getAttribute("loggedInAdmin");
-
-        if("family".equals(loggedInUser.getRole()) || loggedInAdmin != null){
-            out.println(String.valueOf(relationSer.familyCount()));
+        if (loggedInAdmin != null || (loggedInUser != null && "family".equals(loggedInUser.getRole()))) {
+            out.println(relationSer.familyCount());
         }
     }
 }

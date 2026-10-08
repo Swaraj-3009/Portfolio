@@ -14,10 +14,12 @@ public class RelationshipDaoImpl implements RelationshipDAO {
 
     @Override
     public List<Users> getFollowers() {
-        String sql = "SELECT * FROM users WHERE role = followers";
+        String sql = "SELECT username, email FROM users WHERE role IN (?, ?)";
 
         try(Connection con = DatabaseConnection.getConnection();
             PreparedStatement ps = con.prepareStatement(sql)){
+                ps.setString(1, "follower");
+                ps.setString(2, "followers");
                 List<Users> u = new ArrayList<>();
 
                 try(ResultSet rs = ps.executeQuery()){
@@ -25,7 +27,7 @@ public class RelationshipDaoImpl implements RelationshipDAO {
                         Users user = new Users();
 
                         user.setUsername(rs.getString("username"));
-                        user.setEmail(rs.getString("username"));
+                        user.setEmail(rs.getString("email"));
 
                         u.add(user);
                     }
@@ -35,16 +37,19 @@ public class RelationshipDaoImpl implements RelationshipDAO {
         catch(Exception e){
             e.printStackTrace();
         }
-        return null;
+        return new ArrayList<>();
     }
 
     @Override 
     public boolean requestFriends(Users user){
-        String sql = "UPDATE users SET role = requestedFriends WHERE username = ?";
+        String sql = "UPDATE users SET role = ? WHERE username = ? AND role IN (?, ?)";
 
         try(Connection con = DatabaseConnection.getConnection();
             PreparedStatement ps = con.prepareStatement(sql)){
-                ps.setString(1, user.getUsername());
+                ps.setString(1, "requestedFriends");
+                ps.setString(2, user.getUsername());
+                ps.setString(3, "follower");
+                ps.setString(4, "followers");
 
                 int rows = ps.executeUpdate();
                 if(rows > 0 ){
@@ -58,10 +63,11 @@ public class RelationshipDaoImpl implements RelationshipDAO {
     }
     @Override
     public List<Users> getRequestedFriends() {
-        String sql = "SELECT * FROM users WHERE role = requestedfriends";
+        String sql = "SELECT username, email FROM users WHERE role = ?";
 
         try(Connection con = DatabaseConnection.getConnection();
             PreparedStatement ps = con.prepareStatement(sql)){
+                ps.setString(1, "requestedFriends");
                 List<Users> u = new ArrayList<>();
 
                 try(ResultSet rs = ps.executeQuery()){
@@ -69,7 +75,7 @@ public class RelationshipDaoImpl implements RelationshipDAO {
                         Users user = new Users();
 
                         user.setUsername(rs.getString("username"));
-                        user.setEmail(rs.getString("username"));
+                        user.setEmail(rs.getString("email"));
 
                         u.add(user);
                     }
@@ -79,15 +85,17 @@ public class RelationshipDaoImpl implements RelationshipDAO {
         catch(Exception e){
             e.printStackTrace();
         }
-        return null;
+        return new ArrayList<>();
     }
     @Override
     public boolean updateToFriends(Users user) {
-        String sql = "UPDATE users SET role = friends WHERE username = ?";
+        String sql = "UPDATE users SET role = ? WHERE username = ? AND role = ?";
 
         try(Connection con = DatabaseConnection.getConnection();
             PreparedStatement ps = con.prepareStatement(sql)){
-                ps.setString(1, user.getUsername());
+                ps.setString(1, "friends");
+                ps.setString(2, user.getUsername());
+                ps.setString(3, "requestedFriends");
 
                 int rows = ps.executeUpdate();
                 if(rows > 0){
@@ -105,10 +113,11 @@ public class RelationshipDaoImpl implements RelationshipDAO {
 
     @Override
     public List<Users> getFriends() {
-        String sql = "SELECT * FROM users WHERE role = friends";
+        String sql = "SELECT username, email FROM users WHERE role = ?";
 
         try(Connection con = DatabaseConnection.getConnection();
             PreparedStatement ps = con.prepareStatement(sql)){
+                ps.setString(1, "friends");
                 List<Users> u = new ArrayList<>();
 
                 try(ResultSet rs = ps.executeQuery()){
@@ -116,7 +125,7 @@ public class RelationshipDaoImpl implements RelationshipDAO {
                         Users user = new Users();
 
                         user.setUsername(rs.getString("username"));
-                        user.setEmail(rs.getString("username"));
+                        user.setEmail(rs.getString("email"));
 
                         u.add(user);
                     }
@@ -126,17 +135,19 @@ public class RelationshipDaoImpl implements RelationshipDAO {
         catch(Exception e){
             e.printStackTrace();
         }
-        return null;
+        return new ArrayList<>();
     }
 
 
     @Override
     public boolean updateToFamily(Users user) {
-        String sql = "UPDATE users SET role = family WHERE username = ?";
+        String sql = "UPDATE users SET role = ? WHERE username = ? AND role = ?";
 
         try(Connection con = DatabaseConnection.getConnection();
             PreparedStatement ps = con.prepareStatement(sql)){
-                ps.setString(1, user.getUsername());
+                ps.setString(1, "family");
+                ps.setString(2, user.getUsername());
+                ps.setString(3, "friends");
 
                 int rows = ps.executeUpdate();
                 if(rows > 0){
@@ -154,10 +165,11 @@ public class RelationshipDaoImpl implements RelationshipDAO {
 
     @Override
     public List<Users> getFamily() {
-        String sql = "SELECT * FROM users WHERE role = family";
+        String sql = "SELECT username, email FROM users WHERE role = ?";
 
         try(Connection con = DatabaseConnection.getConnection();
             PreparedStatement ps = con.prepareStatement(sql)){
+                ps.setString(1, "family");
                 List<Users> u = new ArrayList<>();
 
                 try(ResultSet rs = ps.executeQuery()){
@@ -165,7 +177,7 @@ public class RelationshipDaoImpl implements RelationshipDAO {
                         Users user = new Users();
 
                         user.setUsername(rs.getString("username"));
-                        user.setEmail(rs.getString("username"));
+                        user.setEmail(rs.getString("email"));
 
                         u.add(user);
                     }
@@ -175,7 +187,7 @@ public class RelationshipDaoImpl implements RelationshipDAO {
         catch(Exception e){
             e.printStackTrace();
         }
-        return null;
+        return new ArrayList<>();
     }
 
 }

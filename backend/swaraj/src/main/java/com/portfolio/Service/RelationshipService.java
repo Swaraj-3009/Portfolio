@@ -2,70 +2,59 @@ package com.portfolio.Service;
 
 import java.util.List;
 
-import com.portfolio.DAO.RelationshipDAO;
-import com.portfolio.DAO.UserDAO;
 import com.portfolio.DAO.DaoImpl.RelationshipDaoImpl;
-import com.portfolio.DAO.DaoImpl.UserDaoImpl;
 import com.portfolio.model.Users;
 
 public class RelationshipService {
-    //Followers
-    public List<Users> followers(){
-        RelationshipDAO relationDao = new RelationshipDaoImpl();
-        return relationDao.getFollowers();
-    }
-    public int followersCount(){
-        RelationshipDAO relationDao = new RelationshipDaoImpl();
-        return relationDao.getFollowers().size();
+    public List<Users> followers() {
+        return new RelationshipDaoImpl().getFollowers();
     }
 
+    public int followersCount() {
+        List<Users> followers = followers();
+        return followers == null ? 0 : followers.size();
+    }
 
-    //Friends
-    public boolean requestFriends(Users user){
-        UserDAO userDao = new UserDaoImpl();
-        if(userDao.getUser(user.getUsername(), user.getPassword()) != null){
-            RelationshipDAO relationDao = new RelationshipDaoImpl();
-            if(relationDao.requestFriends(user)){
-                return true;
-            }
+    public boolean requestFriends(Users user) {
+        if (user == null || user.getUsername() == null || user.getUsername().trim().isEmpty()) {
+            return false;
         }
-        return false;
-    }
-    public List<Users> requestedFriends(){
-        RelationshipDAO relationDao = new RelationshipDaoImpl();
-        return relationDao.getRequestedFriends();
-    }
-    public boolean addFriends(Users user){
-        RelationshipDAO relationDao = new RelationshipDaoImpl();
-        return relationDao.updateToFriends(user);
-    }
-    public List<Users> friends(){
-        RelationshipDAO relationDao = new RelationshipDaoImpl();
-        return relationDao.getFriends();
-    }
-    public int friendsCount(){
-        RelationshipDAO relationDao = new RelationshipDaoImpl();
-        return relationDao.getFriends().size();
+        return new RelationshipDaoImpl().requestFriends(user);
     }
 
+    public List<Users> requestedFriends() {
+        return new RelationshipDaoImpl().getRequestedFriends();
+    }
 
-    //Family
-    public boolean addFamily(Users user){
-        UserDAO userDao = new UserDaoImpl();
-        if(userDao.getUser(user.getUsername(), user.getPassword()) != null){
-            RelationshipDAO relationDao = new RelationshipDaoImpl();
-            if(relationDao.updateToFamily(user)){
-                return true;
-            }
+    public boolean addFriends(Users user) {
+        if (user == null || user.getUsername() == null || user.getUsername().trim().isEmpty()) {
+            return false;
         }
-        return false;
+        return new RelationshipDaoImpl().updateToFriends(user);
     }
-    public List<Users> family(){
-        RelationshipDAO relationDao = new RelationshipDaoImpl();
-        return relationDao.getFamily();
+
+    public List<Users> friends() {
+        return new RelationshipDaoImpl().getFriends();
     }
-    public int familyCount(){
-        RelationshipDAO relationDao = new RelationshipDaoImpl();
-        return relationDao.getFamily().size();
+
+    public int friendsCount() {
+        List<Users> friends = friends();
+        return friends == null ? 0 : friends.size();
+    }
+
+    public boolean addFamily(Users user) {
+        if (user == null || user.getUsername() == null || user.getUsername().trim().isEmpty()) {
+            return false;
+        }
+        return new RelationshipDaoImpl().updateToFamily(user);
+    }
+
+    public List<Users> family() {
+        return new RelationshipDaoImpl().getFamily();
+    }
+
+    public int familyCount() {
+        List<Users> family = family();
+        return family == null ? 0 : family.size();
     }
 }

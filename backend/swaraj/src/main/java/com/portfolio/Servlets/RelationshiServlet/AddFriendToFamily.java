@@ -18,7 +18,7 @@ public class AddFriendToFamily extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         HttpSession session = req.getSession(false);
-        Admin loggedInAdmin = (Admin) session.getAttribute("loggedInAdmin");
+        Admin loggedInAdmin = session == null ? null : (Admin) session.getAttribute("loggedInAdmin");
 
         if (loggedInAdmin == null) {
             resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -38,7 +38,7 @@ public class AddFriendToFamily extends HttpServlet {
 
         if (new RelationshipService().addFamily(user)) {
             resp.setStatus(HttpServletResponse.SC_OK);
-            resp.getWriter().println(user.getUsername() + "is now Family");
+            resp.getWriter().println(user.getUsername() + " is now family");
         } else {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             resp.getWriter().println("Not Promoted to Family");

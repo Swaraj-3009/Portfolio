@@ -18,7 +18,7 @@ public class AcceptFriendServlet extends HttpServlet{
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         HttpSession session = req.getSession(false);
-        Admin loggedInAdmin = (Admin) session.getAttribute("loggedInAdmin");
+        Admin loggedInAdmin = session == null ? null : (Admin) session.getAttribute("loggedInAdmin");
 
         if (loggedInAdmin == null) {
             resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

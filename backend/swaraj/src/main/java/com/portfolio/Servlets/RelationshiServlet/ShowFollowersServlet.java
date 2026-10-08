@@ -35,7 +35,8 @@ public class ShowFollowersServlet extends HttpServlet {
         }
 
         String role = loggedInUser == null ? "admin" : loggedInUser.getRole();
-        if (loggedInAdmin == null && !"family".equals(role) && !"followers".equals(role) && !"friends".equals(role)) {
+        if (loggedInAdmin == null && !"family".equals(role) && !"follower".equals(role)
+                && !"followers".equals(role) && !"friends".equals(role)) {
             resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             resp.getWriter().println("You are not allowed to view this follower list");
             return;
