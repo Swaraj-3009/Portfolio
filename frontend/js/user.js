@@ -7,6 +7,7 @@ function init() {
   $("#hello").textContent = `Welcome, ${user.name.split(" ")[0]}`;
   $("#role").textContent = user.role === "guest" ? "Guest view" : "Signed-in user";
   user.role === "guest" ? renderGuest() : renderAccount();
+  if (user.role !== "guest") initRelationships(user);
   renderDeveloper();
 }
 

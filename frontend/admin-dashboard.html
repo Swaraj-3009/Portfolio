@@ -3,23 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Opening portfolio editor | Swaraj</title>
+  <title>Community | Swaraj Portfolio Hub</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/pages.css">
 </head>
 <body>
+  <header class="bar"><a class="brand" href="index.html">Swaraj Portfolio Hub</a><div class="right" id="bar-right"></div></header>
   <main class="wrap page">
-    <section class="panel">
-      <h1>Opening your portfolio editor…</h1>
-      <p class="muted">The admin workspace now lives in the portfolio itself.</p>
-      <p><a class="btn primary" href="portfolio.html#top">Continue to portfolio</a></p>
-    </section>
+    <p class="muted sm" id="role">Administrator</p>
+    <h2 id="hello">Community</h2>
+    <p class="muted">Manage relationship requests and memberships.</p>
+    <div class="status" id="status" aria-live="polite"></div>
+    <div class="relationship-area" id="relationships"></div>
   </main>
   <script src="js/data.js"></script>
   <script src="js/common.js"></script>
+  <script src="js/relationships.js"></script>
   <script>
     const currentAdmin = requireRole("admin");
-    if (currentAdmin) location.replace("portfolio.html#top");
+    if (currentAdmin) {
+      mountTopbar(currentAdmin);
+      initRelationships(currentAdmin);
+    }
   </script>
 </body>
 </html>

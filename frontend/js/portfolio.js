@@ -135,8 +135,8 @@ const loadEducation = async () => {
 
 // dashboard link goes to the right place for whoever is signed in
 const who = getUser();
-$("#dash-link").href = who ? (who.role === "admin" ? "#top" : "user-dashboard.html") : "index.html";
-$("#dash-link").textContent = who ? "Dashboard" : "Home";
+$("#dash-link").href = who ? (who.role === "admin" ? "admin-dashboard.html" : "user-dashboard.html") : "index.html";
+$("#dash-link").textContent = who?.role === "admin" ? "Community" : who ? "Dashboard" : "Home";
 
 // links
 $("#gh").href = $("#gh2").href = SITE.github;

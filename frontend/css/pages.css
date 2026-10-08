@@ -33,6 +33,20 @@ button.btn.primary{background:var(--accent);color:#1a1405}
 .avatar{width:96px;height:96px;object-fit:cover;border-radius:50%;border:1px solid var(--line);margin-bottom:16px}
 @media(max-width:560px){.kv{grid-template-columns:1fr;gap:2px}.kv dd{margin-bottom:10px}}
 
+.relationship-area{display:grid;gap:18px;min-width:0}
+.relationship-counts{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px;margin:4px 0 2px}
+.relationship-count{padding:14px 16px;border:1px solid var(--line);border-radius:var(--r);background:rgba(255,255,255,.025)}
+.relationship-count strong{display:block;font-size:1.55rem;font-variant-numeric:tabular-nums}
+.relationship-count span{display:block;margin-top:4px;color:var(--muted);font-size:.82rem}
+.relationship-section{min-width:0;padding:20px 0;border-top:1px solid var(--line)}
+.relationship-section h3{margin:0 0 14px}
+.relationship-list{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.relationship-list li{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.02)}
+.relationship-list li span{min-width:0;overflow-wrap:anywhere}
+.relationship-list .btn{flex:none;min-height:36px;padding:7px 12px;font-size:.82rem}
+.relationship-empty{color:var(--muted);font-size:.92rem}
+@media(max-width:480px){.relationship-list li{align-items:flex-start;flex-direction:column}.relationship-list .btn{width:100%}}
+
 /* Product polish: shared surfaces, clearer hierarchy, and calmer interaction states. */
 :root{
   --bg:#0b1020;
