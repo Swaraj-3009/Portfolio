@@ -21,15 +21,23 @@ public class RelationshipService {
 
 
     //Friends
-    public boolean addFriends(Users user){
+    public boolean requestFriends(Users user){
         UserDAO userDao = new UserDaoImpl();
         if(userDao.getUser(user.getUsername(), user.getPassword()) != null){
             RelationshipDAO relationDao = new RelationshipDaoImpl();
-            if(relationDao.updateToFriends(user)){
+            if(relationDao.requestFriends(user)){
                 return true;
             }
         }
         return false;
+    }
+    public List<Users> requestedFriends(){
+        RelationshipDAO relationDao = new RelationshipDaoImpl();
+        return relationDao.getRequestedFriends();
+    }
+    public boolean addFriends(Users user){
+        RelationshipDAO relationDao = new RelationshipDaoImpl();
+        return relationDao.updateToFriends(user);
     }
     public List<Users> friends(){
         RelationshipDAO relationDao = new RelationshipDaoImpl();

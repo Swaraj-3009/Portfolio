@@ -40,6 +40,12 @@ public class UserService {
         }
     }
 
+    public Users getUser(String username, String password){
+        UserDAO userDao = new UserDaoImpl();
+
+        return userDao.getUser(username, password);
+    }
+
     public boolean UpdateUsername(Users loggedInUser, Users user){
         UserDAO userDao = new UserDaoImpl();
 

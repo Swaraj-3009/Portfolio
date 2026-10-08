@@ -38,7 +38,49 @@ public class RelationshipDaoImpl implements RelationshipDAO {
         return null;
     }
 
+    @Override 
+    public boolean requestFriends(Users user){
+        String sql = "UPDATE users SET role = requestedFriends WHERE username = ?";
 
+        try(Connection con = DatabaseConnection.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql)){
+                ps.setString(1, user.getUsername());
+
+                int rows = ps.executeUpdate();
+                if(rows > 0 ){
+                    return true;
+                }
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+        return false;
+    }
+    @Override
+    public List<Users> getRequestedFriends() {
+        String sql = "SELECT * FROM users WHERE role = requestedfriends";
+
+        try(Connection con = DatabaseConnection.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql)){
+                List<Users> u = new ArrayList<>();
+
+                try(ResultSet rs = ps.executeQuery()){
+                    while(rs.next()){
+                        Users user = new Users();
+
+                        user.setUsername(rs.getString("username"));
+                        user.setEmail(rs.getString("username"));
+
+                        u.add(user);
+                    }
+                    return u;
+                }
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
     @Override
     public boolean updateToFriends(Users user) {
         String sql = "UPDATE users SET role = friends WHERE username = ?";
