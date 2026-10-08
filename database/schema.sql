@@ -6,10 +6,16 @@ CREATE TABLE IF NOT EXISTS users (
     username VARCHAR(64) NOT NULL,
     email VARCHAR(254) NOT NULL,
     password VARCHAR(255) NOT NULL,
-    role VARCHAR(32) NOT NULL DEFAULT 'user',
+    -- Relationship roles progress from follower to requestedFriends to friends to family.
+    -- Keep 'user' for compatibility with older/demo accounts.
+    role VARCHAR(32) NOT NULL DEFAULT 'follower',
     PRIMARY KEY (username),
     UNIQUE KEY uq_users_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- CREATE TABLE IF NOT EXISTS does not update existing installations. Keep their
+-- default role aligned with newly registered accounts as well.
+ALTER TABLE users MODIFY COLUMN role VARCHAR(32) NOT NULL DEFAULT 'follower';
 
 CREATE TABLE IF NOT EXISTS admin (
     username VARCHAR(64) NOT NULL,
@@ -68,5 +74,6 @@ CREATE TABLE IF NOT EXISTS portfolio_item_order (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT IGNORE INTO admin (username, password) VALUES ('admin', 'admin');
-INSERT IGNORE INTO users (username, email, password, role) VALUES ('user', 'user@example.com', 'user', 'user');
+INSERT IGNORE INTO users (username, email, password, role) VALUES ('user', 'user@example.com', 'user', 'follower');
+UPDATE users SET role = 'follower' WHERE username = 'user' AND role = 'user';
 INSERT IGNORE INTO my_profile (id) VALUES (1);
