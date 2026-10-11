@@ -73,6 +73,27 @@ CREATE TABLE IF NOT EXISTS portfolio_item_order (
     KEY idx_portfolio_item_order (section_key, sort_order)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS chat_user (
+    conversation_id INT NOT NULL AUTO_INCREMENT,
+    user1 VARCHAR(64) NOT NULL,
+    user2 VARCHAR(64) NOT NULL,
+    PRIMARY KEY (conversation_id),
+    UNIQUE KEY uq_chat_user_pair (user1, user2)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS chat (
+    message_id BIGINT NOT NULL AUTO_INCREMENT,
+    conversation_id INT NOT NULL,
+    message TEXT NOT NULL,
+    sender VARCHAR(64) NOT NULL,
+    reciever VARCHAR(64) NOT NULL,
+    time DATETIME(6) NOT NULL,
+    PRIMARY KEY (message_id),
+    KEY idx_chat_conversation_time (conversation_id, time, message_id),
+    CONSTRAINT fk_chat_conversation FOREIGN KEY (conversation_id)
+        REFERENCES chat_user (conversation_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 INSERT IGNORE INTO admin (username, password) VALUES ('admin', 'admin');
 INSERT IGNORE INTO users (username, email, password, role) VALUES ('user', 'user@example.com', 'user', 'follower');
 UPDATE users SET role = 'follower' WHERE username = 'user' AND role = 'user';

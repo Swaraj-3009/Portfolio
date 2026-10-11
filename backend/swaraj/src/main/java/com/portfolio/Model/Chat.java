@@ -1,13 +1,14 @@
 package com.portfolio.model;
 
-import java.sql.Time;
+import java.time.LocalDateTime;
 
 public class Chat {
     private String message;
     private String sender;
     private String reciever;
-    private Time time;
-    private int chatId;
+    private LocalDateTime time;
+    private long messageId;
+    private int conversationId;
 
 
     //getters
@@ -20,11 +21,14 @@ public class Chat {
     public String getReciever() {
         return reciever;
     }
-    public Time getTime() {
+    public LocalDateTime getTime() {
         return time;
     }
-    public int getChatId(){
-        return chatId;
+    public long getMessageId(){
+        return messageId;
+    }
+    public int getConversationId(){
+        return conversationId;
     }
 
 
@@ -38,10 +42,13 @@ public class Chat {
     public void setReciever(String reciever) {
         this.reciever = reciever;
     }
-    public void setTime(Time time) {
+    public void setTime(LocalDateTime time) {
         this.time = time;
     }
-    public void setChatId(int chatId){
-        this.chatId = chatId;
+    public void setMessageId(long messageId){
+        this.messageId = messageId;
+    }
+    public void setConversationId(int conversationId){
+        this.conversationId = conversationId;
     }
 }
