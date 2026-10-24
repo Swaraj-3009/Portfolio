@@ -83,7 +83,17 @@ const renderAuth = () => {
   const logoutBtn = $("#logout-btn");
 
   if (loginBtn) loginBtn.addEventListener("click", openAuthModal);
-  if (logoutBtn) logoutBtn.addEventListener("click", () => { clearUser(); renderAuth(); updateDashboardVisibility(); });
+  if (logoutBtn) logoutBtn.addEventListener("click", async () => {
+    try {
+      await fetch(`${API_BASE_URL}/auth/logout`, { method: "POST", credentials: "include", cache: "no-store" });
+    } catch {
+      // Clear the local UI even if the backend is already unavailable.
+    } finally {
+      clearUser();
+      renderAuth();
+      updateDashboardVisibility();
+    }
+  });
   updateDashboardVisibility();
 };
 

@@ -7,7 +7,16 @@ const plain = (html) => new DOMParser().parseFromString(html, "text/html").body.
 const USER_KEY = "servletAuthUser";
 const getUser = () => { try { return JSON.parse(localStorage.getItem(USER_KEY)) || null; } catch { return null; } };
 const setUser = (u) => localStorage.setItem(USER_KEY, JSON.stringify(u));
-const logout = () => { localStorage.removeItem(USER_KEY); location.href = "index.html"; };
+const logout = async () => {
+  try {
+    await fetch(`${API_BASE_URL}/auth/logout`, { method: "POST", credentials: "include", cache: "no-store" });
+  } catch {
+    // Clear the local UI even if the backend is already unavailable.
+  } finally {
+    localStorage.removeItem(USER_KEY);
+    location.href = "index.html";
+  }
+};
 
 /* Page guard: returns the user, or redirects and returns null */
 function requireRole(...roles) {

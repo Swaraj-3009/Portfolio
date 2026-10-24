@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.portfolio.model.Admin;
 import com.portfolio.model.Chat;
+import com.portfolio.model.ChatConversation;
 import com.portfolio.model.Users;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,6 +23,15 @@ final class ChatServletSupport {
         Admin admin = (Admin) session.getAttribute("loggedInAdmin");
         Users user = (Users) session.getAttribute("loggedInUser");
         return admin != null ? admin.getUsername() : user != null ? user.getUsername() : null;
+    }
+
+    static String getLoggedInAdminUsername(HttpServletRequest req) {
+        HttpSession session = req.getSession(false);
+        if(session == null){
+            return null;
+        }
+        Admin admin = (Admin) session.getAttribute("loggedInAdmin");
+        return admin == null ? null : admin.getUsername();
     }
 
     static int getIntParameter(HttpServletRequest req, String name) {
@@ -55,6 +65,21 @@ final class ChatServletSupport {
                     .append("\",\"reciever\":\"").append(escapeJson(chat.getReciever()))
                     .append("\",\"time\":\"").append(escapeJson(String.valueOf(chat.getTime())))
                     .append("\"}");
+        }
+        resp.getWriter().write(json.append(']').toString());
+    }
+
+    static void writeConversationsJson(HttpServletResponse resp, List<ChatConversation> conversations) throws IOException {
+        resp.setContentType("application/json;charset=UTF-8");
+        StringBuilder json = new StringBuilder("[");
+        for(int index = 0; index < conversations.size(); index++){
+            ChatConversation conversation = conversations.get(index);
+            if(index > 0){
+                json.append(',');
+            }
+            json.append("{\"conversationId\":").append(conversation.getConversationId())
+                    .append(",\"user1\":\"").append(escapeJson(conversation.getUser1()))
+                    .append("\",\"user2\":\"").append(escapeJson(conversation.getUser2())).append("\"}");
         }
         resp.getWriter().write(json.append(']').toString());
     }

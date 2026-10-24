@@ -11,8 +11,26 @@ import java.util.List;
 import com.portfolio.DAO.ChatDAO;
 import com.portfolio.config.DatabaseConnection;
 import com.portfolio.model.Chat;
+import com.portfolio.model.ChatConversation;
 
 public class ChatDaoImpl implements ChatDAO{
+
+    @Override
+    public boolean accountExists(String username) {
+        String sql = "SELECT 1 FROM users WHERE username = ? "
+                + "UNION ALL SELECT 1 FROM admin WHERE username = ? LIMIT 1";
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, username);
+            ps.setString(2, username);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 
     @Override
     public int createConversation(String user1, String user2) {
@@ -41,6 +59,27 @@ public class ChatDaoImpl implements ChatDAO{
             e.printStackTrace();
         }
         return false;
+    }
+
+    @Override
+    public List<ChatConversation> getAllConversations() {
+        List<ChatConversation> conversations = new ArrayList<>();
+        String sql = "SELECT conversation_id, user1, user2 FROM chat_user ORDER BY conversation_id DESC";
+        try(Connection con = DatabaseConnection.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery()){
+            while(rs.next()){
+                ChatConversation conversation = new ChatConversation();
+                conversation.setConversationId(rs.getInt("conversation_id"));
+                conversation.setUser1(rs.getString("user1"));
+                conversation.setUser2(rs.getString("user2"));
+                conversations.add(conversation);
+            }
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+        return conversations;
     }
 
     @Override
@@ -155,6 +194,37 @@ public class ChatDaoImpl implements ChatDAO{
                 if(rows > 0){
                     return true;
                 }
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    @Override
+    public boolean editChatAsAdmin(Chat chat) {
+        String sql = "UPDATE chat SET message = ? WHERE message_id = ? AND conversation_id = ?";
+        try(Connection con = DatabaseConnection.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql)){
+            ps.setString(1, chat.getMessage());
+            ps.setLong(2, chat.getMessageId());
+            ps.setInt(3, chat.getConversationId());
+            return ps.executeUpdate() > 0;
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    @Override
+    public boolean deleteChatAsAdmin(Chat chat) {
+        String sql = "DELETE FROM chat WHERE message_id = ? AND conversation_id = ?";
+        try(Connection con = DatabaseConnection.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql)){
+            ps.setLong(1, chat.getMessageId());
+            ps.setInt(2, chat.getConversationId());
+            return ps.executeUpdate() > 0;
         }
         catch(Exception e){
             e.printStackTrace();

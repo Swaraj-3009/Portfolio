@@ -32,7 +32,7 @@ public class RelationshipService {
         return mergedList;
     }
     public int followersCount() {
-        return countOf(followers()) + countOf(friends()) + countOf(family());
+        return countOf(followers());
     }
 
 

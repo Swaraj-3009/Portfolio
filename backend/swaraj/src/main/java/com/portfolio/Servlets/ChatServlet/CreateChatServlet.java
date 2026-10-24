@@ -24,12 +24,19 @@ public class CreateChatServlet extends HttpServlet {
         if(reciever == null){
             reciever = req.getParameter("receiver");
         }
-        if(reciever == null || reciever.isBlank() || sender.equals(reciever.trim())){
+        if(reciever == null || reciever.isBlank() || sender.equalsIgnoreCase(reciever.trim())){
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "A different reciever is required");
             return;
         }
 
-        int conversationId = new ChatService().createConversation(sender, reciever.trim());
+        ChatService chatService = new ChatService();
+        String normalizedReciever = reciever.trim();
+        if (!chatService.accountExists(normalizedReciever)) {
+            resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Recipient account was not found");
+            return;
+        }
+
+        int conversationId = chatService.createConversation(sender, normalizedReciever);
         if(conversationId <= 0){
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Conversation could not be created");
             return;

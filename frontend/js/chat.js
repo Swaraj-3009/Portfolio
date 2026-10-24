@@ -3,18 +3,36 @@ if (chatUser) initChat();
 
 function initChat() {
   mountTopbar(chatUser);
-  $("#role").textContent = chatUser.role === "admin" ? "Administrator" : "Signed-in user";
+  const adminMode = chatUser.role === "admin";
+  $("#role").textContent = adminMode ? "Administrator" : "Signed-in user";
+  if (adminMode) {
+    $(".chat-page-heading p").textContent = "Review conversations and moderate messages.";
+    $(".chat-list-heading h3").textContent = "All conversations";
+    $("#new-chat-form").hidden = true;
+    $("#join-chat-form").hidden = true;
+    $(".chat-local-note").textContent = "Admin access: all conversations are listed here.";
+  }
 
   const storageKey = `portfolioChats:${chatUser.name}`;
   const list = $("#conversation-list");
   const messages = $("#messages");
   const sendForm = $("#send-form");
   const messageInput = $("#message");
-  let conversations = readConversations();
+  let conversations = adminMode ? [] : readConversations();
   let active = null;
   let refreshTimer;
+  let adminConversationSignature = null;
+  let messageLoadSequence = 0;
 
-  renderConversations();
+  if (adminMode) {
+    $("#conversation-list").innerHTML = `<p class="chat-list-empty">Loading conversations...</p>`;
+    loadAdminConversations();
+    window.setInterval(() => {
+      if (!document.hidden) loadAdminConversations();
+    }, 15000);
+  } else {
+    renderConversations();
+  }
   $("#new-chat-form").addEventListener("submit", startConversation);
   $("#join-chat-form").addEventListener("submit", joinConversation);
   list.addEventListener("click", (event) => {
@@ -77,29 +95,36 @@ function initChat() {
 
   async function openConversation(conversation) {
     if (!conversation) return;
+    window.clearInterval(refreshTimer);
     active = conversation;
     renderConversations();
     renderThreadHeading();
-    sendForm.hidden = false;
-    messageInput.disabled = false;
-    $(".chat-send-button", sendForm).disabled = false;
+    sendForm.hidden = adminMode;
+    messageInput.disabled = adminMode;
+    $(".chat-send-button", sendForm).disabled = adminMode;
     messages.innerHTML = `<div class="chat-loading">Loading conversation...</div>`;
     try {
       await loadMessages();
-      messageInput.focus();
-      window.clearInterval(refreshTimer);
+      if (active?.conversationId !== conversation.conversationId) return;
+        if (!adminMode) messageInput.focus();
       refreshTimer = window.setInterval(() => {
         if (active && !document.hidden) loadMessages(true).catch(() => {});
       }, 7000);
     } catch (error) {
-      messages.replaceChildren(emptyChatState(error.message));
+      if (active?.conversationId === conversation.conversationId) {
+        messages.replaceChildren(emptyChatState(error.message));
+      }
       throw error;
     }
   }
 
   async function loadMessages(quiet = false) {
     if (!active) return;
-    const rows = await chatRequest(`/chat/showChat?conversationId=${encodeURIComponent(active.conversationId)}`);
+    const requestedConversationId = active.conversationId;
+    const requestSequence = ++messageLoadSequence;
+    const endpoint = adminMode ? "/admin/chat/messages" : "/chat/showChat";
+    const rows = await chatRequest(`${endpoint}?conversationId=${encodeURIComponent(requestedConversationId)}`);
+    if (!active || active.conversationId !== requestedConversationId || requestSequence !== messageLoadSequence) return;
     if (!Array.isArray(rows)) throw new Error("The server returned an invalid message list.");
     const wasAtBottom = messages.scrollHeight - messages.scrollTop - messages.clientHeight < 80;
     const oldSignature = messages.dataset.signature;
@@ -113,19 +138,22 @@ function initChat() {
   async function sendMessage(event) {
     event.preventDefault();
     if (!active) return;
+    const conversation = active;
     const message = messageInput.value.trim();
     if (!message) return;
     const button = $(".chat-send-button", sendForm);
     try {
       await withBusyButton(button, "Sending...", async () => {
         await chatRequest("/chat/sendChat", {
-          conversationId: active.conversationId,
+          conversationId: conversation.conversationId,
           message,
-          reciever: active.peer
+          reciever: conversation.peer
         });
-        messageInput.value = "";
-        await loadMessages();
-        messageInput.focus();
+        if (active?.conversationId === conversation.conversationId) {
+          if (messageInput.value.trim() === message) messageInput.value = "";
+          await loadMessages();
+          messageInput.focus();
+        }
       });
     } catch (error) {
       setStatus(error.message, true);
@@ -149,7 +177,7 @@ function initChat() {
     body.className = "chat-message-body";
     body.textContent = row.message;
     article.append(meta, body);
-    if (own) {
+    if (own || adminMode) {
       const actions = document.createElement("div");
       actions.className = "chat-message-actions";
       const edit = document.createElement("button");
@@ -167,14 +195,17 @@ function initChat() {
   }
 
   async function editMessage(row) {
+    if (!active) return;
+    const conversation = active;
     const replacement = window.prompt("Edit your message", row.message);
     if (replacement === null || !replacement.trim() || replacement.trim() === row.message) return;
     try {
-      await chatRequest("/chat/editChat", {
-        conversationId: active.conversationId,
+      await chatRequest(adminMode ? "/admin/chat/edit" : "/chat/editChat", {
+        conversationId: conversation.conversationId,
         messageId: row.messageId,
         message: replacement.trim()
       });
+      if (active?.conversationId !== conversation.conversationId) return;
       await loadMessages();
       setStatus("Message updated.");
     } catch (error) {
@@ -183,12 +214,15 @@ function initChat() {
   }
 
   async function deleteMessage(row) {
+    if (!active) return;
+    const conversation = active;
     if (!window.confirm("Delete this message? This cannot be undone.")) return;
     try {
-      await chatRequest("/chat/deleteChat", {
-        conversationId: active.conversationId,
+      await chatRequest(adminMode ? "/admin/chat/delete" : "/chat/deleteChat", {
+        conversationId: conversation.conversationId,
         messageId: row.messageId
       });
+      if (active?.conversationId !== conversation.conversationId) return;
       await loadMessages();
       setStatus("Message deleted.");
     } catch (error) {
@@ -224,9 +258,34 @@ function initChat() {
       button.type = "button";
       button.className = `chat-conversation${active?.conversationId === conversation.conversationId ? " selected" : ""}`;
       button.dataset.conversationId = conversation.conversationId;
-      button.innerHTML = `<span class="chat-peer-avatar small">${esc(conversation.peer.slice(0, 1).toUpperCase())}</span><span class="chat-conversation-copy"><strong>${esc(conversation.peer)}</strong><small>Conversation #${conversation.conversationId}</small></span><span class="chat-conversation-arrow" aria-hidden="true">&gt;</span>`;
+      const label = conversation.peer || `${conversation.user1} / ${conversation.user2}`;
+      button.innerHTML = `<span class="chat-peer-avatar small">${esc(label.slice(0, 1).toUpperCase())}</span><span class="chat-conversation-copy"><strong>${esc(label)}</strong><small>Conversation #${conversation.conversationId}</small></span><span class="chat-conversation-arrow" aria-hidden="true">&gt;</span>`;
       list.appendChild(button);
     });
+  }
+
+  async function loadAdminConversations() {
+    try {
+      const rows = await chatRequest("/admin/chat/conversations");
+      if (!Array.isArray(rows)) throw new Error("The server returned an invalid conversation list.");
+      const nextConversations = rows.map((row) => ({
+        ...row,
+        peer: `${row.user1} / ${row.user2}`
+      }));
+      const signature = nextConversations.map((row) => `${row.conversationId}:${row.user1}:${row.user2}`).join("|");
+      if (signature === adminConversationSignature) return;
+      adminConversationSignature = signature;
+      conversations = nextConversations;
+      renderConversations();
+    } catch (error) {
+      if (!conversations.length) {
+        const empty = document.createElement("p");
+        empty.className = "chat-list-empty";
+        empty.textContent = error.message;
+        list.replaceChildren(empty);
+      }
+      setStatus(error.message, true);
+    }
   }
 
   function rememberConversation(conversation) {

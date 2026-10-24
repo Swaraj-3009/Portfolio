@@ -30,6 +30,7 @@ public class UserLoginServlet extends HttpServlet{
                 HttpSession session = req.getSession(true);
                 req.changeSessionId();
 
+                session.removeAttribute("loggedInAdmin");
                 session.setAttribute("loggedInUser", loggedInUser);
                 session.setMaxInactiveInterval(30 * 60);
 
