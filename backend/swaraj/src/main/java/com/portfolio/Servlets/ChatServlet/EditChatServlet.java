@@ -14,7 +14,16 @@ import jakarta.servlet.http.HttpServletResponse;
 @WebServlet("/chat/editChat")
 public class EditChatServlet extends HttpServlet {
     @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        updateChat(req, resp);
+    }
+
+    @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        updateChat(req, resp);
+    }
+
+    private void updateChat(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String sender = ChatServletSupport.getLoggedInUsername(req);
         if(sender == null){
             resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Login required");

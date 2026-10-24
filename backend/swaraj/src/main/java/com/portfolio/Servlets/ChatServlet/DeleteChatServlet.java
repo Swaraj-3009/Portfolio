@@ -14,7 +14,16 @@ import jakarta.servlet.http.HttpServletResponse;
 @WebServlet("/chat/deleteChat")
 public class DeleteChatServlet extends HttpServlet {
     @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        deleteChat(req, resp);
+    }
+
+    @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        deleteChat(req, resp);
+    }
+
+    private void deleteChat(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String sender = ChatServletSupport.getLoggedInUsername(req);
         if(sender == null){
             resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Login required");
