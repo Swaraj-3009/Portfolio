@@ -12,14 +12,14 @@ const logout = () => { localStorage.removeItem(USER_KEY); location.href = "index
 /* Page guard: returns the user, or redirects and returns null */
 function requireRole(...roles) {
   const u = getUser();
-  if (!u) { location.replace(roles.includes("admin") ? "admin-login.html" : "login.html"); return null; }
+  if (!u) { location.replace(roles.length === 1 && roles.includes("admin") ? "admin-login.html" : "login.html"); return null; }
   if (!roles.includes(u.role)) { location.replace(u.role === "admin" ? "admin-dashboard.html" : "user-dashboard.html"); return null; }
   return u;
 }
 function mountTopbar(u) {
   const bar = $("#bar-right");
   if (!bar) return;
-  bar.innerHTML = `<a class="btn" href="portfolio.html">Portfolio</a><span class="muted sm">${esc(u.name)}</span><button class="btn" type="button" id="logout">Logout</button>`;
+  bar.innerHTML = `<a class="btn" href="portfolio.html">Portfolio</a><a class="btn" href="chat.html">Chat</a><span class="muted sm">${esc(u.name)}</span><button class="btn" type="button" id="logout">Logout</button>`;
   $("#logout").onclick = logout;
 }
 function setStatus(text, isError) {

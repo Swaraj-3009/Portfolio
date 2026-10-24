@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Messages | Swaraj Portfolio Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+  <header class="bar"><a class="brand" href="index.html">Swaraj Portfolio Hub</a><div class="right" id="bar-right"></div></header>
+  <main class="wrap page chat-page">
+    <p class="muted sm" id="role"></p>
+    <div class="chat-page-heading"><div><h2>Messages</h2><p class="muted">Private conversations with the portfolio community.</p></div><span class="chat-presence"><i></i> Refreshes every 7 sec</span></div>
+    <div class="status" id="status" aria-live="polite"></div>
+    <div class="chat-layout">
+      <aside class="chat-sidebar" aria-label="Conversations">
+        <form id="new-chat-form" class="chat-start-form">
+          <label for="recipient">Start a conversation</label>
+          <div class="chat-input-row"><input id="recipient" name="recipient" autocomplete="off" placeholder="Username" required><button class="btn primary chat-icon-button" type="submit" aria-label="Start conversation" title="Start conversation">+</button></div>
+        </form>
+        <form id="join-chat-form" class="chat-join-form">
+          <label for="conversation-id">Open by conversation ID</label>
+          <input id="conversation-id" name="conversationId" type="number" min="1" placeholder="Conversation ID" required>
+          <div class="chat-input-row"><input id="conversation-peer" name="peer" autocomplete="off" placeholder="Other username" required><button class="btn chat-open-button" type="submit">Open</button></div>
+        </form>
+        <div class="chat-list-heading"><h3>Recent</h3><span id="conversation-count" class="muted sm">0</span></div>
+        <div class="chat-conversation-list" id="conversation-list"></div>
+        <p class="chat-local-note">Recent conversations are saved in this browser.</p>
+      </aside>
+      <section class="chat-thread" aria-label="Message thread">
+        <div class="chat-thread-heading" id="thread-heading">
+          <div class="chat-empty-avatar" aria-hidden="true">...</div>
+          <div><h3>Select a conversation</h3><p class="muted">Choose a recent chat or start a new one.</p></div>
+        </div>
+        <div class="chat-messages" id="messages" aria-live="polite" aria-relevant="additions text">
+          <div class="chat-empty-state"><span class="chat-empty-mark" aria-hidden="true">-&gt;</span><p>Your conversations will appear here.</p></div>
+        </div>
+        <form id="send-form" class="chat-compose" hidden>
+          <label class="sr-only" for="message">Write a message</label>
+          <textarea id="message" name="message" rows="1" maxlength="2000" placeholder="Write a message..." required disabled></textarea>
+          <button class="btn primary chat-send-button" type="submit" aria-label="Send message" title="Send message" disabled>Send <span aria-hidden="true">-&gt;</span></button>
+        </form>
+      </section>
+    </div>
+  </main>
+  <script src="js/data.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/chat.js"></script>
+</body>
+</html>
