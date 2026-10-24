@@ -1,0 +1,40 @@
+package com.portfolio.Servlets.ChatServlet;
+
+import java.io.IOException;
+
+import com.portfolio.Service.ChatService;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+@WebServlet("/chat/createChat")
+public class CreateChatServlet extends HttpServlet {
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String sender = ChatServletSupport.getLoggedInUsername(req);
+        if(sender == null){
+            resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Login required");
+            return;
+        }
+
+        String reciever = req.getParameter("reciever");
+        if(reciever == null){
+            reciever = req.getParameter("receiver");
+        }
+        if(reciever == null || reciever.isBlank() || sender.equals(reciever.trim())){
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "A different reciever is required");
+            return;
+        }
+
+        int conversationId = new ChatService().createConversation(sender, reciever.trim());
+        if(conversationId <= 0){
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Conversation could not be created");
+            return;
+        }
+        resp.setContentType("application/json;charset=UTF-8");
+        resp.getWriter().write("{\"conversationId\":" + conversationId + "}");
+    }
+}

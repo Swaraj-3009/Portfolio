@@ -15,6 +15,35 @@ import com.portfolio.model.Chat;
 public class ChatDaoImpl implements ChatDAO{
 
     @Override
+    public int createConversation(String user1, String user2) {
+        try(Connection con = DatabaseConnection.getConnection()){
+            return getOrCreateConversationId(con, user1, user2);
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    @Override
+    public boolean isConversationParticipant(int conversationId, String username) {
+        String sql = "SELECT 1 FROM chat_user WHERE conversation_id = ? AND (user1 = ? OR user2 = ?)";
+        try(Connection con = DatabaseConnection.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql)){
+            ps.setInt(1, conversationId);
+            ps.setString(2, username);
+            ps.setString(3, username);
+            try(ResultSet rs = ps.executeQuery()){
+                return rs.next();
+            }
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    @Override
     public boolean sendChat(Chat chat) {
         String sql = "INSERT INTO chat (conversation_id, message, sender, reciever, time) VALUES (?, ?, ?, ?, ?)";
 
@@ -22,10 +51,12 @@ public class ChatDaoImpl implements ChatDAO{
                 boolean autoCommit = con.getAutoCommit();
                 con.setAutoCommit(false);
                 try {
-                    int conversationId = getOrCreateConversationId(con, chat.getSender(), chat.getReciever());
-                    chat.setConversationId(conversationId);
+                    if(!conversationMatchesUsers(con, chat.getConversationId(), chat.getSender(), chat.getReciever())){
+                        con.rollback();
+                        return false;
+                    }
                     try(PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)){
-                        ps.setInt(1, conversationId);
+                        ps.setInt(1, chat.getConversationId());
                         ps.setString(2, chat.getMessage());
                         ps.setString(3, chat.getSender());
                         ps.setString(4, chat.getReciever());
@@ -90,13 +121,14 @@ public class ChatDaoImpl implements ChatDAO{
 
     @Override
     public boolean editChat(Chat chat) {
-        String sql = "UPDATE chat SET message = ? WHERE message_id = ? AND conversation_id = ?";
+        String sql = "UPDATE chat SET message = ? WHERE message_id = ? AND conversation_id = ? AND sender = ?";
 
         try(Connection con = DatabaseConnection.getConnection();
             PreparedStatement ps = con.prepareStatement(sql)){
                 ps.setString(1, chat.getMessage());
                 ps.setLong(2, chat.getMessageId());
                 ps.setInt(3, chat.getConversationId());
+                ps.setString(4, chat.getSender());
 
                 int rows = ps.executeUpdate();
                 if(rows > 0){
@@ -111,12 +143,13 @@ public class ChatDaoImpl implements ChatDAO{
 
     @Override
     public boolean deleteChat(Chat chat) {
-        String sql = "DELETE FROM chat WHERE message_id = ? AND conversation_id = ?";
+        String sql = "DELETE FROM chat WHERE message_id = ? AND conversation_id = ? AND sender = ?";
 
         try(Connection con = DatabaseConnection.getConnection();
             PreparedStatement ps = con.prepareStatement(sql)){
                 ps.setLong(1, chat.getMessageId());
                 ps.setInt(2, chat.getConversationId());
+                ps.setString(3, chat.getSender());
 
                 int rows = ps.executeUpdate();
                 if(rows > 0){
@@ -155,5 +188,20 @@ public class ChatDaoImpl implements ChatDAO{
             }
         }
         throw new IllegalStateException("Conversation could not be created or found");
+    }
+
+    private boolean conversationMatchesUsers(Connection con, int conversationId, String sender, String reciever) throws Exception {
+        String sql = "SELECT 1 FROM chat_user WHERE conversation_id = ? "
+                + "AND user1 = LEAST(?, ?) AND user2 = GREATEST(?, ?)";
+        try(PreparedStatement ps = con.prepareStatement(sql)){
+            ps.setInt(1, conversationId);
+            ps.setString(2, sender);
+            ps.setString(3, reciever);
+            ps.setString(4, sender);
+            ps.setString(5, reciever);
+            try(ResultSet rs = ps.executeQuery()){
+                return rs.next();
+            }
+        }
     }
 }
