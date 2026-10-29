@@ -93,6 +93,21 @@ public class ChatDaoImpl implements ChatDAO{
     }
 
     @Override
+    public boolean isAdminAccount(String username) {
+        String sql = "SELECT 1 FROM admin WHERE username = ? LIMIT 1";
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, username);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    @Override
     public int createConversation(String user1, String user2) {
         try(Connection con = DatabaseConnection.getConnection()){
             return getOrCreateConversationId(con, user1, user2);

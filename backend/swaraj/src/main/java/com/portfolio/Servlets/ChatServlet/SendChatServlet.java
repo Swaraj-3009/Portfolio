@@ -32,6 +32,13 @@ public class SendChatServlet extends HttpServlet {
             return;
         }
 
+        String peer = ChatServletSupport.requireEligibleConversationPeer(req, resp, conversationId, new ChatService());
+        if (peer == null) return;
+        if (!peer.equalsIgnoreCase(reciever.trim())) {
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Recipient does not match this conversation");
+            return;
+        }
+
         Chat chat = new Chat();
         chat.setConversationId(conversationId);
         chat.setMessage(message.trim());

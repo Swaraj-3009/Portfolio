@@ -36,7 +36,7 @@ public class ShowFamilyServlet extends HttpServlet{
 
         String role = loggedInUser == null ? "admin"
             : new RelationshipService().relationshipRole(loggedInUser.getUsername());
-        if (loggedInAdmin == null && !"family".equals(role)) {
+        if (loggedInAdmin == null && !"family".equals(role) && !"friends".equals(role)) {
             resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             resp.getWriter().println("You are not allowed to view this family list");
             return;

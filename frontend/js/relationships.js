@@ -55,7 +55,7 @@ function initRelationships(user) {
     const userSections = role === "family"
       ? [adminSections[3], adminSections[2], adminSections[1]]
       : role === "friends"
-        ? [adminSections[2], adminSections[1]]
+        ? [adminSections[2], adminSections[3], adminSections[1]]
         : role === "follower"
           ? [adminSections[1]] : [];
     sections = admin ? adminSections : userSections;
@@ -66,8 +66,7 @@ function initRelationships(user) {
         return [item.key, { error: error.message }];
       }
     });
-    const countsRequest = fetchText("/relation").then((text) => text.split(/\r?\n/).map((value) => value.trim()).filter(Boolean).map(Number));
-    const [results, counts] = await Promise.all([Promise.all(requests), countsRequest.then((value) => value, () => null)]);
+    const results = await Promise.all(requests);
     const listsByKey = Object.fromEntries(results);
     lists.replaceChildren();
     if (!admin && role === "requestedFriends") {
@@ -89,23 +88,30 @@ function initRelationships(user) {
       section.innerHTML = `<h3>${esc(title)} <span class="muted" data-list-count></span></h3><p class="relationship-empty">Loading...</p>`;
       lists.appendChild(section);
     });
-    renderCounts(counts, listsByKey);
+    renderCounts(listsByKey);
     sections.forEach((item) => renderList(item, listsByKey[item.key]));
     if (!admin && role === "follower") renderFriendRequestButton();
   }
 
-  function renderCounts(counts, listsByKey) {
+  function renderCounts(listsByKey) {
     const target = $("#relationship-counts", root);
-    const values = counts && counts.length >= 2 ? { followers: counts[0], friends: counts[1], family: counts[2] } : null;
+    const listCount = (key) => {
+      const result = listsByKey[key];
+      return result && !result.error ? result.names.length : null;
+    };
     const metrics = admin
-      ? [ ["Pending requests", listsByKey.requestedFriend], ["Followers", values?.followers], ["Friends", values?.friends], ["Family", values?.family] ]
+      ? [ ["Pending requests", listCount("requestedFriend")], ["Followers", listCount("followers")], ["Friends", listCount("friends")], ["Family", listCount("family")] ]
       : role === "family"
-        ? [["Family", values?.family], ["Friends", values?.friends], ["Followers", values?.followers]]
-        : [["Friends", values?.friends], ["Followers", values?.followers]];
+        ? [["Family", listCount("family")], ["Friends", listCount("friends")], ["Followers", listCount("followers")]]
+        : role === "friends"
+          ? [["Friends", listCount("friends")], ["Family", listCount("family")], ["Followers", listCount("followers")]]
+          : role === "follower"
+            ? [["Community", listCount("followers")]]
+            : [];
     target.replaceChildren(...metrics.map(([label, value]) => {
       const metric = document.createElement("div");
       metric.className = "relationship-count";
-      const count = typeof value === "number" ? value : value?.names?.length;
+      const count = value;
       metric.innerHTML = `<strong>${Number.isFinite(count) ? count : "—"}</strong><span>${esc(label)}</span>`;
       return metric;
     }));

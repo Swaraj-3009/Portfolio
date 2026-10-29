@@ -21,6 +21,11 @@ public class ChatService {
                 && new ChatDaoImpl().accountExists(username.trim());
     }
 
+    public boolean isAdminAccount(String username) {
+        return username != null && !username.trim().isEmpty()
+                && new ChatDaoImpl().isAdminAccount(username.trim());
+    }
+
     public int createConversation(String user1, String user2){
         return new ChatDaoImpl().createConversation(user1, user2);
     }

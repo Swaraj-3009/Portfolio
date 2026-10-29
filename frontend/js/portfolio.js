@@ -173,9 +173,12 @@ const applyProfile = (profile) => {
   updateProfileLink("#li", profile.linkedin);
   updateProfileLink("#li2", profile.linkedin);
 
-  $("#phone-row").hidden = !profile.phone;
-  $("#phone").href = profile.phone ? `tel:${profile.phone.replace(/[^+\d]/g, "")}` : "#";
-  $("#phone").textContent = profile.phone;
+  const phone = String(profile.phone || "").trim();
+  const phoneNumber = phone.replace(/[^+\d]/g, "");
+  const hasPhone = Boolean(phoneNumber.replace(/\D/g, "")) && !/^(n\/?a|not available)$/i.test(phone);
+  $("#phone-row").hidden = !hasPhone;
+  $("#phone").href = hasPhone ? `tel:${phoneNumber}` : "#";
+  $("#phone").textContent = hasPhone ? phone : "";
   $("#address-row").hidden = !profile.address;
   $("#address").textContent = profile.address;
   ph.replaceChildren();

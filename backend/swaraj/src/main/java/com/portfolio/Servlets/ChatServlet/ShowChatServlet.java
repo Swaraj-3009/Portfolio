@@ -18,18 +18,13 @@ public class ShowChatServlet extends HttpServlet {
         if(!ChatServletSupport.requireChatAccess(req, resp)){
             return;
         }
-        String username = ChatServletSupport.getLoggedInUsername(req);
-
         int conversationId = ChatServletSupport.getIntParameter(req, "conversationId");
         if(conversationId <= 0){
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "conversationId is required");
             return;
         }
         ChatService chatService = new ChatService();
-        if(!chatService.isConversationParticipant(conversationId, username)){
-            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Not a participant in this conversation");
-            return;
-        }
+        if (ChatServletSupport.requireEligibleConversationPeer(req, resp, conversationId, chatService) == null) return;
 
         Chat chat = new Chat();
         chat.setConversationId(conversationId);

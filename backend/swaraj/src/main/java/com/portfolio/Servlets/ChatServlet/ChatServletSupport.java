@@ -3,6 +3,7 @@ package com.portfolio.Servlets.ChatServlet;
 import java.io.IOException;
 import java.util.List;
 
+import com.portfolio.Service.ChatService;
 import com.portfolio.Service.RelationshipService;
 import com.portfolio.model.Admin;
 import com.portfolio.model.Chat;
@@ -50,6 +51,27 @@ final class ChatServletSupport {
 
     static boolean isChatRoleAllowed(String role) {
         return "friends".equals(role) || "family".equals(role);
+    }
+
+    static boolean isEligibleChatMember(String username) {
+        if (username == null || username.isBlank()) return false;
+        return isChatRoleAllowed(new RelationshipService().relationshipRole(username))
+                || new com.portfolio.Service.ChatService().isAdminAccount(username);
+    }
+
+    static String requireEligibleConversationPeer(HttpServletRequest req, HttpServletResponse resp,
+            int conversationId, ChatService chatService) throws IOException {
+        String username = getLoggedInUsername(req);
+        String peer = chatService.getConversationPeer(conversationId, username);
+        if (peer == null) {
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Not a participant in this conversation");
+            return null;
+        }
+        if (!isEligibleChatMember(peer)) {
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Chat is only available between friends, family, and the admin");
+            return null;
+        }
+        return peer;
     }
 
     static String getLoggedInUsername(HttpServletRequest req) {

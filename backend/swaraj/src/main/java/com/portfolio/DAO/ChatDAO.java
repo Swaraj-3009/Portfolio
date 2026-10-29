@@ -9,6 +9,7 @@ public interface ChatDAO {
     public boolean isChatEnabled();
     public boolean setChatEnabled(boolean enabled);
     public boolean accountExists(String username);
+    public boolean isAdminAccount(String username);
     public int createConversation(String user1, String user2);
     public boolean isConversationParticipant(int conversationId, String username);
     public String getConversationPeer(int conversationId, String username);

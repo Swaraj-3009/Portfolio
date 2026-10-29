@@ -34,6 +34,10 @@ public class CreateChatServlet extends HttpServlet {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Recipient account was not found");
             return;
         }
+        if (!ChatServletSupport.isEligibleChatMember(normalizedReciever)) {
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "You can only start chats with friends, family, or the admin");
+            return;
+        }
 
         int conversationId = chatService.createConversation(sender, normalizedReciever);
         if(conversationId <= 0){

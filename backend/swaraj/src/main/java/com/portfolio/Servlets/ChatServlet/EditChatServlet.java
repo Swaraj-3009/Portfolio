@@ -36,6 +36,7 @@ public class EditChatServlet extends HttpServlet {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "conversationId, messageId and message are required");
             return;
         }
+        if (ChatServletSupport.requireEligibleConversationPeer(req, resp, conversationId, new ChatService()) == null) return;
 
         Chat existingChat = new Chat();
         existingChat.setConversationId(conversationId);

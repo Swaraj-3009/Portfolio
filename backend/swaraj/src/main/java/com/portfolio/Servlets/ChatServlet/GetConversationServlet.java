@@ -17,19 +17,14 @@ public class GetConversationServlet extends HttpServlet {
         if(!ChatServletSupport.requireChatAccess(req, resp)){
             return;
         }
-        String username = ChatServletSupport.getLoggedInUsername(req);
-
         int conversationId = ChatServletSupport.getIntParameter(req, "conversationId");
         if(conversationId <= 0){
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "conversationId is required");
             return;
         }
 
-        String peer = new ChatService().getConversationPeer(conversationId, username);
-        if(peer == null){
-            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Not a participant in this conversation");
-            return;
-        }
+        String peer = ChatServletSupport.requireEligibleConversationPeer(req, resp, conversationId, new ChatService());
+        if(peer == null) return;
 
         resp.setContentType("application/json;charset=UTF-8");
         resp.getWriter().write("{\"conversationId\":" + conversationId + ",\"peer\":\""

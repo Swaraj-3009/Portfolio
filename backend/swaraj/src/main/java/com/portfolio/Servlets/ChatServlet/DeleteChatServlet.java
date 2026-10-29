@@ -35,6 +35,7 @@ public class DeleteChatServlet extends HttpServlet {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "conversationId and messageId are required");
             return;
         }
+        if (ChatServletSupport.requireEligibleConversationPeer(req, resp, conversationId, new ChatService()) == null) return;
 
         Chat chat = new Chat();
         chat.setConversationId(conversationId);

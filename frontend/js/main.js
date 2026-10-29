@@ -300,10 +300,16 @@ const applyProfile = (profile) => {
   updateProfileLink("#li", profile.linkedin);
   updateProfileLink("#li2", profile.linkedin);
 
-  if (profile.phone) {
-    $("#phone").href = `tel:${profile.phone.replace(/[^+\d]/g, "")}`;
-    $("#phone").textContent = profile.phone;
-    $("#phone-row").hidden = false;
+  const phone = String(profile.phone || "").trim();
+  const phoneNumber = phone.replace(/[^+\d]/g, "");
+  const hasPhone = Boolean(phoneNumber.replace(/\D/g, "")) && !/^(n\/?a|not available)$/i.test(phone);
+  $("#phone-row").hidden = !hasPhone;
+  if (hasPhone) {
+    $("#phone").href = `tel:${phoneNumber}`;
+    $("#phone").textContent = phone;
+  } else {
+    $("#phone").removeAttribute("href");
+    $("#phone").textContent = "";
   }
   if (profile.address) {
     $("#address").textContent = profile.address;

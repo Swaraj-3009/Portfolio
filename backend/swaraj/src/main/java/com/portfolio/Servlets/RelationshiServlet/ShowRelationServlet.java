@@ -33,8 +33,8 @@ public class ShowRelationServlet extends HttpServlet {
         out.println(relationSer.followersCount());
         out.println(relationSer.friendsCount());
 
-        if (loggedInAdmin != null || (loggedInUser != null
-            && "family".equals(relationSer.relationshipRole(loggedInUser.getUsername())))) {
+        String role = loggedInUser == null ? "admin" : relationSer.relationshipRole(loggedInUser.getUsername());
+        if (loggedInAdmin != null || "friends".equals(role) || "family".equals(role)) {
             out.println(relationSer.familyCount());
         }
     }

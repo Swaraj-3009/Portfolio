@@ -32,9 +32,10 @@ function initChat(initialChatEnabled) {
   if (adminMode) {
     $("#chat-feature-control").hidden = false;
     chatEnabledInput.checked = initialChatEnabled;
-    $(".chat-page-heading p").textContent = "Review conversations and moderate messages.";
+    $(".chat-page-heading p").textContent = "Chat with friends and family, and moderate conversations.";
     $(".chat-list-heading h3").textContent = "All conversations";
-    $("#new-chat-form").hidden = true;
+    $("#new-chat-form").hidden = false;
+    $("#new-chat-form label").textContent = "Start a conversation with a friend or family member";
     $("#join-chat-form").hidden = true;
     $(".chat-local-note").textContent = "Admin access: all conversations are listed here.";
   }
@@ -141,11 +142,12 @@ function initChat(initialChatEnabled) {
     try {
       await withBusyButton(button, "...", async () => {
         const result = await chatRequest("/chat/createChat", { reciever: recipient });
-        const conversation = { conversationId: Number(result.conversationId), peer: recipient };
+        const conversation = { conversationId: Number(result.conversationId), peer: recipient, adminConversation: chatUser.role === "admin" };
         rememberConversation(conversation);
         form.reset();
         renderConversations();
         await openConversation(conversation);
+        if (adminMode) loadAdminConversations();
         setStatus(`Conversation with ${recipient} is ready.`);
       });
     } catch (error) {
@@ -181,9 +183,10 @@ function initChat(initialChatEnabled) {
     active = conversation;
     renderConversations();
     renderThreadHeading();
-    sendForm.hidden = adminMode;
-    messageInput.disabled = adminMode;
-    $(".chat-send-button", sendForm).disabled = adminMode;
+    const canAdminReply = !adminMode || conversation.adminConversation === true;
+    sendForm.hidden = !canAdminReply;
+    messageInput.disabled = !canAdminReply;
+    $(".chat-send-button", sendForm).disabled = !canAdminReply;
     messages.innerHTML = `<div class="chat-loading">Loading conversation...</div>`;
     try {
       await loadMessages();
@@ -353,10 +356,14 @@ function initChat(initialChatEnabled) {
       const rows = await chatRequest("/admin/chat/conversations");
       if (requestSequence !== adminListLoadSequence) return;
       if (!Array.isArray(rows)) throw new Error("The server returned an invalid conversation list.");
-      const nextConversations = rows.map((row) => ({
-        ...row,
-        peer: `${row.user1} / ${row.user2}`
-      }));
+      const nextConversations = rows.map((row) => {
+        const isAdminConversation = row.user1 === chatUser.name || row.user2 === chatUser.name;
+        return {
+          ...row,
+          adminConversation: isAdminConversation,
+          peer: isAdminConversation ? (row.user1 === chatUser.name ? row.user2 : row.user1) : `${row.user1} / ${row.user2}`
+        };
+      });
       const signature = nextConversations.map((row) => `${row.conversationId}:${row.user1}:${row.user2}`).join("|");
       if (signature === adminConversationSignature) return;
       adminConversationSignature = signature;
