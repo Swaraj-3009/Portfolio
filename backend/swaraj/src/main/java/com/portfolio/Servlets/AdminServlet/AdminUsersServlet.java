@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 
 import com.portfolio.Service.UserService;
+import com.portfolio.config.UserSessionRegistry;
 import com.portfolio.model.Admin;
 import com.portfolio.model.Users;
 
@@ -57,6 +58,7 @@ public class AdminUsersServlet extends HttpServlet {
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "User account could not be removed");
             return;
         }
+        UserSessionRegistry.invalidateUserSessions(username.trim());
         resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
     }
 
