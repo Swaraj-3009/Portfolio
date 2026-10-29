@@ -4,8 +4,18 @@ import com.portfolio.model.Users;
 import com.portfolio.DAO.UserDAO;
 import com.portfolio.DAO.DaoImpl.UserDaoImpl;
 import com.portfolio.Exception.UserNotFoundException;
+import java.util.List;
 
 public class UserService {
+    public List<Users> getAllUsers(){
+        return new UserDaoImpl().getAllUsers();
+    }
+
+    public boolean deleteUser(String username){
+        return username != null && !username.trim().isEmpty()
+                && new UserDaoImpl().deleteUser(username.trim());
+    }
+
     public boolean registerUser(String username, String password, String email, String role){
         Users user = new Users();
         UserDAO userDao = new UserDaoImpl();

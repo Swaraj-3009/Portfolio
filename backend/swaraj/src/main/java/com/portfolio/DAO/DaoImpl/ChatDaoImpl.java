@@ -18,10 +18,16 @@ public class ChatDaoImpl implements ChatDAO{
     @Override
     public boolean isChatEnabled() {
         String sql = "SELECT enabled FROM chat_settings WHERE setting_id = 1";
-        try(Connection con = DatabaseConnection.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery()){
-            return rs.next() && rs.getBoolean("enabled");
+        try(Connection con = DatabaseConnection.getConnection()){
+            ensureChatSettingsTable(con);
+            try(PreparedStatement init = con.prepareStatement(
+                    "INSERT IGNORE INTO chat_settings (setting_id, enabled) VALUES (1, TRUE)")){
+                init.executeUpdate();
+            }
+            try(PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()){
+                return rs.next() && rs.getBoolean("enabled");
+            }
         }
         catch(Exception e){
             e.printStackTrace();
@@ -31,16 +37,31 @@ public class ChatDaoImpl implements ChatDAO{
 
     @Override
     public boolean setChatEnabled(boolean enabled) {
-        String sql = "UPDATE chat_settings SET enabled = ? WHERE setting_id = 1";
+        String sql = "INSERT INTO chat_settings (setting_id, enabled) VALUES (1, ?) "
+                + "ON DUPLICATE KEY UPDATE enabled = VALUES(enabled)";
         try(Connection con = DatabaseConnection.getConnection();
             PreparedStatement ps = con.prepareStatement(sql)){
+            ensureChatSettingsTable(con);
             ps.setBoolean(1, enabled);
-            return ps.executeUpdate() == 1;
+            ps.executeUpdate();
+            return true;
         }
         catch(Exception e){
             e.printStackTrace();
         }
         return false;
+    }
+
+    private void ensureChatSettingsTable(Connection con) throws Exception {
+        String sql = "CREATE TABLE IF NOT EXISTS chat_settings ("
+                + "setting_id TINYINT NOT NULL, "
+                + "enabled BOOLEAN NOT NULL DEFAULT TRUE, "
+                + "PRIMARY KEY (setting_id), "
+                + "CONSTRAINT chk_chat_settings_singleton CHECK (setting_id = 1)"
+                + ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+        try(Statement statement = con.createStatement()){
+            statement.execute(sql);
+        }
     }
 
     @Override

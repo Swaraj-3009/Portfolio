@@ -44,7 +44,7 @@ final class ChatServletSupport {
         if(new com.portfolio.Service.ChatService().isChatEnabled()){
             return true;
         }
-        resp.sendError(HttpServletResponse.SC_LOCKED, "Chat is disabled by the administrator");
+        resp.sendError(HttpServletResponse.SC_BAD_GATEWAY, "Chat is disabled by the administrator");
         return false;
     }
 
