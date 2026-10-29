@@ -16,6 +16,34 @@ import com.portfolio.model.ChatConversation;
 public class ChatDaoImpl implements ChatDAO{
 
     @Override
+    public boolean isChatEnabled() {
+        String sql = "SELECT enabled FROM chat_settings WHERE setting_id = 1";
+        try(Connection con = DatabaseConnection.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery()){
+            return rs.next() && rs.getBoolean("enabled");
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    @Override
+    public boolean setChatEnabled(boolean enabled) {
+        String sql = "UPDATE chat_settings SET enabled = ? WHERE setting_id = 1";
+        try(Connection con = DatabaseConnection.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql)){
+            ps.setBoolean(1, enabled);
+            return ps.executeUpdate() == 1;
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    @Override
     public boolean accountExists(String username) {
         String sql = "SELECT 1 FROM users WHERE username = ? "
                 + "UNION ALL SELECT 1 FROM admin WHERE username = ? LIMIT 1";

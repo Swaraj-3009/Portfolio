@@ -8,6 +8,14 @@ import com.portfolio.model.Chat;
 import com.portfolio.model.ChatConversation;
 
 public class ChatService {
+    public boolean isChatEnabled() {
+        return new ChatDaoImpl().isChatEnabled();
+    }
+
+    public boolean setChatEnabled(boolean enabled) {
+        return new ChatDaoImpl().setChatEnabled(enabled);
+    }
+
     public boolean accountExists(String username) {
         return username != null && !username.trim().isEmpty()
                 && new ChatDaoImpl().accountExists(username.trim());

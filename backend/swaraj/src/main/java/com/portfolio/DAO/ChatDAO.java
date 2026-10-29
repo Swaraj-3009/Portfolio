@@ -6,6 +6,8 @@ import com.portfolio.model.Chat;
 import com.portfolio.model.ChatConversation;
 
 public interface ChatDAO {
+    public boolean isChatEnabled();
+    public boolean setChatEnabled(boolean enabled);
     public boolean accountExists(String username);
     public int createConversation(String user1, String user2);
     public boolean isConversationParticipant(int conversationId, String username);

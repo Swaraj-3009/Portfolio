@@ -81,6 +81,15 @@ CREATE TABLE IF NOT EXISTS chat_user (
     UNIQUE KEY uq_chat_user_pair (user1, user2)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS chat_settings (
+    setting_id TINYINT NOT NULL,
+    enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    PRIMARY KEY (setting_id),
+    CONSTRAINT chk_chat_settings_singleton CHECK (setting_id = 1)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO chat_settings (setting_id, enabled) VALUES (1, TRUE);
+
 CREATE TABLE IF NOT EXISTS chat (
     message_id BIGINT NOT NULL AUTO_INCREMENT,
     conversation_id INT NOT NULL,

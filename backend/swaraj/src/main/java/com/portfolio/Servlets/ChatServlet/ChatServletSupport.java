@@ -24,7 +24,7 @@ final class ChatServletSupport {
         }
 
         if(session.getAttribute("loggedInAdmin") instanceof Admin){
-            return true;
+            return requireChatFeatureEnabled(resp);
         }
         Users user = (Users) session.getAttribute("loggedInUser");
         if(user == null){
@@ -37,7 +37,15 @@ final class ChatServletSupport {
             resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Only friends and family can use chat");
             return false;
         }
-        return true;
+        return requireChatFeatureEnabled(resp);
+    }
+
+    static boolean requireChatFeatureEnabled(HttpServletResponse resp) throws IOException {
+        if(new com.portfolio.Service.ChatService().isChatEnabled()){
+            return true;
+        }
+        resp.sendError(HttpServletResponse.SC_LOCKED, "Chat is disabled by the administrator");
+        return false;
     }
 
     static boolean isChatRoleAllowed(String role) {

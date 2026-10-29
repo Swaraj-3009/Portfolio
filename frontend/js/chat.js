@@ -1,32 +1,37 @@
 const chatUser = requireRole("user", "admin");
-if (chatUser) {
+if (chatUser) initializeChatPage();
+
+async function initializeChatPage() {
   const chatLayout = $(".chat-layout");
-  chatLayout.style.display = "none";
-  if (chatUser.role === "admin") {
-    chatLayout.style.removeProperty("display");
-    initChat();
-  } else {
-    fetch(`${API_BASE_URL}/relation/myStatus`, { credentials: "include", cache: "no-store" })
-      .then(async (response) => {
-        const role = (await response.text()).trim();
-        if (!response.ok) throw new Error(plain(role) || `Request failed (${response.status}).`);
-        if (role !== "friends" && role !== "family") {
-          setStatus("Chat is available only to friends and family.", true);
-          return;
-        }
-        chatLayout.style.removeProperty("display");
-        initChat();
-      })
-      .catch((error) => setStatus(error.message, true));
+  chatLayout.hidden = true;
+  try {
+    if (chatUser.role !== "admin") {
+      const response = await fetch(`${API_BASE_URL}/relation/myStatus`, { credentials: "include", cache: "no-store" });
+      const role = (await response.text()).trim();
+      if (!response.ok) throw new Error(plain(role) || `Request failed (${response.status}).`);
+      if (role !== "friends" && role !== "family") {
+        setStatus("Chat is available only to friends and family.", true);
+        return;
+      }
+    }
+
+    const settings = await chatRequest("/chat/status");
+    if (!settings || typeof settings.enabled !== "boolean") throw new Error("The server returned an invalid chat setting.");
+    initChat(settings.enabled);
+  } catch (error) {
+    setStatus(error.message, true);
   }
 }
 
-function initChat() {
+function initChat(initialChatEnabled) {
   mountTopbar(chatUser);
   const adminMode = chatUser.role === "admin";
+  const chatLayout = $(".chat-layout");
+  const chatEnabledInput = $("#chat-enabled");
   $("#role").textContent = adminMode ? "Administrator" : "Signed-in user";
-  $(".chat-presence").lastChild.textContent = adminMode ? " Refreshes every 15 sec" : " Refreshes every 7 sec";
   if (adminMode) {
+    $("#chat-feature-control").hidden = false;
+    chatEnabledInput.checked = initialChatEnabled;
     $(".chat-page-heading p").textContent = "Review conversations and moderate messages.";
     $(".chat-list-heading h3").textContent = "All conversations";
     $("#new-chat-form").hidden = true;
@@ -39,22 +44,15 @@ function initChat() {
   const messages = $("#messages");
   const sendForm = $("#send-form");
   const messageInput = $("#message");
+  let chatEnabled = initialChatEnabled;
   let conversations = adminMode ? [] : readConversations();
   let active = null;
-  let refreshTimer;
+  let threadRefreshTimer;
+  let adminRefreshTimer;
   let adminConversationSignature = null;
   let messageLoadSequence = 0;
   let adminListLoadSequence = 0;
 
-  if (adminMode) {
-    $("#conversation-list").innerHTML = `<p class="chat-list-empty">Loading conversations...</p>`;
-    loadAdminConversations();
-    window.setInterval(() => {
-      if (!document.hidden) loadAdminConversations();
-    }, 15000);
-  } else {
-    renderConversations();
-  }
   $("#new-chat-form").addEventListener("submit", startConversation);
   $("#join-chat-form").addEventListener("submit", joinConversation);
   list.addEventListener("click", (event) => {
@@ -68,9 +66,71 @@ function initChat() {
       sendForm.requestSubmit();
     }
   });
+  if (adminMode) chatEnabledInput.addEventListener("change", toggleChatFeature);
+  window.addEventListener("chat-feature-disabled", () => setChatFeatureEnabled(false));
+  setChatFeatureEnabled(initialChatEnabled);
+
+  async function toggleChatFeature(event) {
+    const toggle = event.currentTarget;
+    const enabled = toggle.checked;
+    toggle.disabled = true;
+    try {
+      await chatRequest("/admin/chat/settings", { enabled });
+      setChatFeatureEnabled(enabled);
+      setStatus(enabled ? "Chat enabled for everyone." : "Chat disabled for everyone.");
+    } catch (error) {
+      toggle.checked = chatEnabled;
+      setStatus(error.message, true);
+    } finally {
+      toggle.disabled = false;
+    }
+  }
+
+  function setChatFeatureEnabled(enabled) {
+    chatEnabled = enabled;
+    if (adminMode) chatEnabledInput.checked = enabled;
+    $(".chat-presence").lastChild.textContent = enabled
+      ? adminMode ? " Refreshes every 15 sec" : " Refreshes every 7 sec"
+      : " Refresh paused";
+    $(".chat-presence").classList.toggle("paused", !enabled);
+    chatLayout.hidden = !enabled;
+    window.clearInterval(threadRefreshTimer);
+    window.clearInterval(adminRefreshTimer);
+    threadRefreshTimer = null;
+    adminRefreshTimer = null;
+    if (!enabled) {
+      setStatus("Chat is disabled by the administrator.");
+      return;
+    }
+
+    setStatus("");
+    if (adminMode) {
+      $("#conversation-list").innerHTML = `<p class="chat-list-empty">Loading conversations...</p>`;
+      loadAdminConversations();
+      adminRefreshTimer = window.setInterval(async () => {
+        if (!document.hidden && await refreshChatSetting()) loadAdminConversations();
+      }, 15000);
+    } else if (active) {
+      openConversation(active).catch((error) => setStatus(error.message, true));
+    } else {
+      renderConversations();
+    }
+  }
+
+  async function refreshChatSetting() {
+    try {
+      const settings = await chatRequest("/chat/status");
+      if (!settings || typeof settings.enabled !== "boolean") throw new Error("The server returned an invalid chat setting.");
+      if (settings.enabled !== chatEnabled) setChatFeatureEnabled(settings.enabled);
+      return chatEnabled;
+    } catch {
+      return false;
+    }
+  }
 
   async function startConversation(event) {
     event.preventDefault();
+    if (!chatEnabled) return;
     const form = event.currentTarget;
     const recipient = new FormData(form).get("recipient").trim();
     if (!recipient || recipient === chatUser.name) {
@@ -95,6 +155,7 @@ function initChat() {
 
   async function joinConversation(event) {
     event.preventDefault();
+    if (!chatEnabled) return;
     const form = event.currentTarget;
     const values = new FormData(form);
     const conversationId = Number(values.get("conversationId"));
@@ -115,8 +176,8 @@ function initChat() {
   }
 
   async function openConversation(conversation) {
-    if (!conversation) return;
-    window.clearInterval(refreshTimer);
+    if (!conversation || !chatEnabled) return;
+    window.clearInterval(threadRefreshTimer);
     active = conversation;
     renderConversations();
     renderThreadHeading();
@@ -128,8 +189,8 @@ function initChat() {
       await loadMessages();
       if (active?.conversationId !== conversation.conversationId) return;
         if (!adminMode) messageInput.focus();
-      refreshTimer = window.setInterval(() => {
-        if (active && !document.hidden) loadMessages(true).catch(() => {});
+      threadRefreshTimer = window.setInterval(async () => {
+        if (active && !document.hidden && await refreshChatSetting()) loadMessages(true).catch(() => {});
       }, 7000);
     } catch (error) {
       if (active?.conversationId === conversation.conversationId) {
@@ -140,7 +201,7 @@ function initChat() {
   }
 
   async function loadMessages(quiet = false) {
-    if (!active) return;
+    if (!active || !chatEnabled) return;
     const requestedConversationId = active.conversationId;
     const requestSequence = ++messageLoadSequence;
     const endpoint = adminMode ? "/admin/chat/messages" : "/chat/showChat";
@@ -158,7 +219,7 @@ function initChat() {
 
   async function sendMessage(event) {
     event.preventDefault();
-    if (!active) return;
+    if (!active || !chatEnabled) return;
     const conversation = active;
     const message = messageInput.value.trim();
     if (!message) return;
@@ -286,6 +347,7 @@ function initChat() {
   }
 
   async function loadAdminConversations() {
+    if (!chatEnabled) return;
     const requestSequence = ++adminListLoadSequence;
     try {
       const rows = await chatRequest("/admin/chat/conversations");
@@ -301,7 +363,7 @@ function initChat() {
       conversations = nextConversations;
       renderConversations();
     } catch (error) {
-      if (requestSequence !== adminListLoadSequence) return;
+      if (requestSequence !== adminListLoadSequence || !chatEnabled) return;
       if (!conversations.length) {
         const empty = document.createElement("p");
         empty.className = "chat-list-empty";
@@ -353,6 +415,7 @@ async function chatRequest(path, values) {
   if (response.redirected && /\/(login|admin-login)\.html$/i.test(new URL(response.url).pathname)) {
     throw new Error("Your sign-in session has expired. Sign in again, then retry.");
   }
+  if (response.status === 423) window.dispatchEvent(new CustomEvent("chat-feature-disabled"));
   if (!response.ok) throw new Error(plain(text) || `Request failed (${response.status}).`);
   if (response.status === 204 || !text) return null;
   try {
