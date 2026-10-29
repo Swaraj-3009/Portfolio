@@ -12,7 +12,6 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 
 @WebServlet("/admin/myEducation/AddEducation")
 public class AddMyEducationServlet extends HttpServlet {
@@ -23,11 +22,17 @@ public class AddMyEducationServlet extends HttpServlet {
         MyEducation education = new MyEducation();
         PrintWriter out = resp.getWriter();
 
-        HttpSession session = req.getSession(false);
-        Admin loggedInAdmin = (Admin) session.getAttribute("loggedInAdmin");
+        Admin loggedInAdmin = AdminServletSupport.requireAdmin(req, resp);
+        if(loggedInAdmin == null) return;
 
-        education.setDegree(req.getParameter("degree"));
-        education.setInstitution(req.getParameter("institution"));
+        String degree = req.getParameter("degree");
+        String institution = req.getParameter("institution");
+        if(degree == null || degree.isBlank() || institution == null || institution.isBlank()){
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Degree and institution are required");
+            return;
+        }
+        education.setDegree(degree.trim());
+        education.setInstitution(institution.trim());
         education.setYearofPassing(req.getParameter("yearOfPassing"));
         education.setGrade(req.getParameter("grade"));
         education.setDescription(req.getParameter("description"));

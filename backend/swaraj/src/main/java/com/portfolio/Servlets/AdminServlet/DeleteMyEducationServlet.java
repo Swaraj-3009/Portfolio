@@ -12,7 +12,6 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 
 @WebServlet("/admin/myEducation/deleteEducation")
 public class DeleteMyEducationServlet extends HttpServlet{
@@ -23,10 +22,15 @@ public class DeleteMyEducationServlet extends HttpServlet{
         MyEducation education = new MyEducation();
         PrintWriter out = resp.getWriter();
 
-        HttpSession session = req.getSession(false);
-        Admin loggedInAdmin = (Admin) session.getAttribute("loggedInAdmin");
+        Admin loggedInAdmin = AdminServletSupport.requireAdmin(req, resp);
+        if(loggedInAdmin == null) return;
 
-        education.setId(Integer.parseInt(req.getParameter("id")));
+        Integer id = AdminServletSupport.parsePositiveId(req.getParameter("id"));
+        if(id == null){
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "A valid education id is required");
+            return;
+        }
+        education.setId(id);
 
         if(adminSer.deleteMyEducation(loggedInAdmin, education)){
             resp.setStatus(200);

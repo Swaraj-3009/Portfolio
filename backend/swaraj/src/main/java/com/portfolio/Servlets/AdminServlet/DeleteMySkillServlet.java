@@ -12,7 +12,6 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 
 @WebServlet("/admin/skill/DeleteSkill")
 public class DeleteMySkillServlet extends HttpServlet{
@@ -23,18 +22,23 @@ public class DeleteMySkillServlet extends HttpServlet{
         MySkills skill = new MySkills();
         PrintWriter out = resp.getWriter();
 
-        HttpSession session = req.getSession(false);
-        Admin loggedInAdmin = (Admin) session.getAttribute("loggedInAdmin");
+        Admin loggedInAdmin = AdminServletSupport.requireAdmin(req, resp);
+        if(loggedInAdmin == null) return;
 
-        skill.setId(Integer.parseInt(req.getParameter("id")));
+        Integer id = AdminServletSupport.parsePositiveId(req.getParameter("id"));
+        if(id == null){
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "A valid skill id is required");
+            return;
+        }
+        skill.setId(id);
 
         if(adminSer.deleteMySkill(loggedInAdmin, skill)){
             resp.setStatus(200);
-            out.write("Education deleted");
+            out.write("Skill deleted");
         }
         else{
             resp.setStatus(500);
-            out.write("Education not deleted");
+            out.write("Skill not deleted");
         }
     }
 }
