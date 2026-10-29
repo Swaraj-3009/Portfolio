@@ -208,7 +208,7 @@ function initRelationships(user) {
       const labels = { acceptFriend: "Accepting...", addFamily: "Promoting...", demoteFamily: "Demoting...", demoteFriend: "Demoting...", cancelFriendRequest: "Cancelling..." };
       await withBusyButton(button, labels[action] || "Saving...", async () => {
         if (action === "acceptFriend" || action === "addFamily") {
-          await fetchText(`/relation/${action}`, { username });
+          await submit(`/relation/${action}`, { username }, "Relationship updated");
         } else {
           await submit(`/relation/${action}`, username ? { username } : {}, "Relationship updated");
         }

@@ -14,16 +14,13 @@ import com.portfolio.model.Chat;
 import com.portfolio.model.ChatConversation;
 
 public class ChatDaoImpl implements ChatDAO{
+    private static volatile boolean chatSettingsInitialized;
 
     @Override
     public boolean isChatEnabled() {
         String sql = "SELECT enabled FROM chat_settings WHERE setting_id = 1";
         try(Connection con = DatabaseConnection.getConnection()){
-            ensureChatSettingsTable(con);
-            try(PreparedStatement init = con.prepareStatement(
-                    "INSERT IGNORE INTO chat_settings (setting_id, enabled) VALUES (1, TRUE)")){
-                init.executeUpdate();
-            }
+            initializeChatSettings(con);
             try(PreparedStatement ps = con.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery()){
                 return rs.next() && rs.getBoolean("enabled");
@@ -39,17 +36,31 @@ public class ChatDaoImpl implements ChatDAO{
     public boolean setChatEnabled(boolean enabled) {
         String sql = "INSERT INTO chat_settings (setting_id, enabled) VALUES (1, ?) "
                 + "ON DUPLICATE KEY UPDATE enabled = VALUES(enabled)";
-        try(Connection con = DatabaseConnection.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql)){
-            ensureChatSettingsTable(con);
-            ps.setBoolean(1, enabled);
-            ps.executeUpdate();
-            return true;
+        try(Connection con = DatabaseConnection.getConnection()){
+            initializeChatSettings(con);
+            try(PreparedStatement ps = con.prepareStatement(sql)){
+                ps.setBoolean(1, enabled);
+                ps.executeUpdate();
+                return true;
+            }
         }
         catch(Exception e){
             e.printStackTrace();
         }
         return false;
+    }
+
+    private void initializeChatSettings(Connection con) throws Exception {
+        if(chatSettingsInitialized) return;
+        synchronized(ChatDaoImpl.class){
+            if(chatSettingsInitialized) return;
+            ensureChatSettingsTable(con);
+            try(PreparedStatement init = con.prepareStatement(
+                    "INSERT IGNORE INTO chat_settings (setting_id, enabled) VALUES (1, TRUE)")){
+                init.executeUpdate();
+            }
+            chatSettingsInitialized = true;
+        }
     }
 
     private void ensureChatSettingsTable(Connection con) throws Exception {

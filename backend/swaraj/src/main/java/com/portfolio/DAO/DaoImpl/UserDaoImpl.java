@@ -120,23 +120,78 @@ public class UserDaoImpl implements UserDAO {
 
     @Override
     public boolean updateUsername(Users user, String newUsername, String password) {
-        String sql = "UPDATE users SET username = ? WHERE username = ? AND password = ?";
+        String updateUser = "UPDATE users SET username = ? WHERE username = ? AND password = ?";
+        String updateConversations = "UPDATE chat_user SET user1 = ? WHERE user1 = ?";
+        String updateMessages = "UPDATE chat SET sender = ? WHERE sender = ?";
+        String updateRecipients = "UPDATE chat SET reciever = ? WHERE reciever = ?";
 
-        try(Connection con = DatabaseConnection.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql)){
-                ps.setString(1, newUsername );
-                ps.setString(2, user.getUsername());
-                ps.setString(3, password);
-
-                int rows = ps.executeUpdate();
-                if(rows > 0){
-                    return true;
+        try(Connection con = DatabaseConnection.getConnection()){
+            con.setAutoCommit(false);
+            try{
+                try(PreparedStatement ps = con.prepareStatement(updateUser)){
+                    ps.setString(1, newUsername);
+                    ps.setString(2, user.getUsername());
+                    ps.setString(3, password);
+                    if(ps.executeUpdate() == 0){
+                        con.rollback();
+                        return false;
+                    }
                 }
+                try(PreparedStatement ps = con.prepareStatement(updateConversations)){
+                    ps.setString(1, newUsername);
+                    ps.setString(2, user.getUsername());
+                    ps.executeUpdate();
+                }
+                try(PreparedStatement ps = con.prepareStatement("UPDATE chat_user SET user2 = ? WHERE user2 = ?")){
+                    ps.setString(1, newUsername);
+                    ps.setString(2, user.getUsername());
+                    ps.executeUpdate();
+                }
+                canonicalizeRenamedConversations(con, newUsername);
+                try(PreparedStatement ps = con.prepareStatement(updateMessages)){
+                    ps.setString(1, newUsername);
+                    ps.setString(2, user.getUsername());
+                    ps.executeUpdate();
+                }
+                try(PreparedStatement ps = con.prepareStatement(updateRecipients)){
+                    ps.setString(1, newUsername);
+                    ps.setString(2, user.getUsername());
+                    ps.executeUpdate();
+                }
+                con.commit();
+                return true;
+            } catch(Exception e){
+                con.rollback();
+                throw e;
+            }
         }
         catch(Exception e){
             e.printStackTrace();
         }
         return false;
+    }
+
+    private void canonicalizeRenamedConversations(Connection con, String username) throws Exception {
+        String select = "SELECT conversation_id, LEAST(user1, user2) AS first_user, "
+                + "GREATEST(user1, user2) AS second_user FROM chat_user WHERE user1 = ? OR user2 = ?";
+        String update = "UPDATE chat_user SET user1 = ?, user2 = ? WHERE conversation_id = ?";
+        try(PreparedStatement query = con.prepareStatement(select)){
+            query.setString(1, username);
+            query.setString(2, username);
+            try(ResultSet rs = query.executeQuery();
+                PreparedStatement statement = con.prepareStatement(update)){
+                while(rs.next()){
+                    String user1 = rs.getString("first_user");
+                    String user2 = rs.getString("second_user");
+                    int conversationId = rs.getInt("conversation_id");
+                    statement.setString(1, user1);
+                    statement.setString(2, user2);
+                    statement.setInt(3, conversationId);
+                    statement.addBatch();
+                }
+                statement.executeBatch();
+            }
+        }
     }
 
     @Override
