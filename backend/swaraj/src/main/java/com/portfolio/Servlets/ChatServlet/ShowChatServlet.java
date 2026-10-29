@@ -15,11 +15,10 @@ import jakarta.servlet.http.HttpServletResponse;
 public class ShowChatServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String username = ChatServletSupport.getLoggedInUsername(req);
-        if(username == null){
-            resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Login required");
+        if(!ChatServletSupport.requireChatAccess(req, resp)){
             return;
         }
+        String username = ChatServletSupport.getLoggedInUsername(req);
 
         int conversationId = ChatServletSupport.getIntParameter(req, "conversationId");
         if(conversationId <= 0){

@@ -62,6 +62,26 @@ public class ChatDaoImpl implements ChatDAO{
     }
 
     @Override
+    public String getConversationPeer(int conversationId, String username) {
+        String sql = "SELECT CASE WHEN user1 = ? THEN user2 ELSE user1 END AS peer "
+                + "FROM chat_user WHERE conversation_id = ? AND (user1 = ? OR user2 = ?)";
+        try(Connection con = DatabaseConnection.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql)){
+            ps.setString(1, username);
+            ps.setInt(2, conversationId);
+            ps.setString(3, username);
+            ps.setString(4, username);
+            try(ResultSet rs = ps.executeQuery()){
+                return rs.next() ? rs.getString("peer") : null;
+            }
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
     public List<ChatConversation> getAllConversations() {
         List<ChatConversation> conversations = new ArrayList<>();
         String sql = "SELECT conversation_id, user1, user2 FROM chat_user ORDER BY conversation_id DESC";

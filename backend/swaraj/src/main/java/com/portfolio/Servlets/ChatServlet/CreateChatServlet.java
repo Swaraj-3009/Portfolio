@@ -14,11 +14,10 @@ import jakarta.servlet.http.HttpServletResponse;
 public class CreateChatServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String sender = ChatServletSupport.getLoggedInUsername(req);
-        if(sender == null){
-            resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Login required");
+        if(!ChatServletSupport.requireChatAccess(req, resp)){
             return;
         }
+        String sender = ChatServletSupport.getLoggedInUsername(req);
 
         String reciever = req.getParameter("reciever");
         if(reciever == null){

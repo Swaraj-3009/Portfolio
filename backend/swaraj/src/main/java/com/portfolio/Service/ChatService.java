@@ -21,6 +21,10 @@ public class ChatService {
         return new ChatDaoImpl().isConversationParticipant(conversationId, username);
     }
 
+    public String getConversationPeer(int conversationId, String username){
+        return new ChatDaoImpl().getConversationPeer(conversationId, username);
+    }
+
     public List<ChatConversation> getAllConversations(){
         return new ChatDaoImpl().getAllConversations();
     }

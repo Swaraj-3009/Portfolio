@@ -46,8 +46,18 @@ class RelationshipServiceTest {
         }
 
         @Override
-        public List<Users> followers() {
+        protected List<Users> loadFollowers() {
             return followers;
+        }
+
+        @Override
+        protected List<Users> loadFriends() {
+            return friends;
+        }
+
+        @Override
+        protected List<Users> loadFamily() {
+            return family;
         }
 
         @Override

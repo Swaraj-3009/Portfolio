@@ -3,6 +3,7 @@ package com.portfolio.Servlets.ChatServlet;
 import java.io.IOException;
 import java.util.List;
 
+import com.portfolio.Service.RelationshipService;
 import com.portfolio.model.Admin;
 import com.portfolio.model.Chat;
 import com.portfolio.model.ChatConversation;
@@ -14,6 +15,34 @@ import jakarta.servlet.http.HttpSession;
 
 final class ChatServletSupport {
     private ChatServletSupport() {}
+
+    static boolean requireChatAccess(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        HttpSession session = req.getSession(false);
+        if(session == null){
+            resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Login required");
+            return false;
+        }
+
+        if(session.getAttribute("loggedInAdmin") instanceof Admin){
+            return true;
+        }
+        Users user = (Users) session.getAttribute("loggedInUser");
+        if(user == null){
+            resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Login required");
+            return false;
+        }
+
+        String role = new RelationshipService().relationshipRole(user.getUsername());
+        if(!isChatRoleAllowed(role)){
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Only friends and family can use chat");
+            return false;
+        }
+        return true;
+    }
+
+    static boolean isChatRoleAllowed(String role) {
+        return "friends".equals(role) || "family".equals(role);
+    }
 
     static String getLoggedInUsername(HttpServletRequest req) {
         HttpSession session = req.getSession(false);

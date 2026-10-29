@@ -24,11 +24,10 @@ public class DeleteChatServlet extends HttpServlet {
     }
 
     private void deleteChat(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String sender = ChatServletSupport.getLoggedInUsername(req);
-        if(sender == null){
-            resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Login required");
+        if(!ChatServletSupport.requireChatAccess(req, resp)){
             return;
         }
+        String sender = ChatServletSupport.getLoggedInUsername(req);
 
         int conversationId = ChatServletSupport.getIntParameter(req, "conversationId");
         long messageId = ChatServletSupport.getLongParameter(req, "messageId");

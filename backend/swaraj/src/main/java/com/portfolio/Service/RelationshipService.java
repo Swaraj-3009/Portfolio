@@ -17,13 +17,24 @@ public class RelationshipService {
         return users == null ? 0 : users.size();
     }
 
+    protected List<Users> loadFollowers() {
+        return new RelationshipDaoImpl().getFollowers();
+    }
+
+    protected List<Users> loadFriends() {
+        return new RelationshipDaoImpl().getFriends();
+    }
+
+    protected List<Users> loadFamily() {
+        return new RelationshipDaoImpl().getFamily();
+    }
 
 
     //followers
     public List<Users> followers() {
-        List<Users> list1 =  new RelationshipDaoImpl().getFollowers();
-        List<Users> list2 =  new RelationshipDaoImpl().getFriends();
-        List<Users> list3 =  new RelationshipDaoImpl().getFamily();
+        List<Users> list1 = loadFollowers();
+        List<Users> list2 = loadFriends();
+        List<Users> list3 = loadFamily();
 
         List<Users> mergedList = new ArrayList<>(list1);
         mergedList.addAll(list2);

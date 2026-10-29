@@ -1,10 +1,31 @@
 const chatUser = requireRole("user", "admin");
-if (chatUser) initChat();
+if (chatUser) {
+  const chatLayout = $(".chat-layout");
+  chatLayout.style.display = "none";
+  if (chatUser.role === "admin") {
+    chatLayout.style.removeProperty("display");
+    initChat();
+  } else {
+    fetch(`${API_BASE_URL}/relation/myStatus`, { credentials: "include", cache: "no-store" })
+      .then(async (response) => {
+        const role = (await response.text()).trim();
+        if (!response.ok) throw new Error(plain(role) || `Request failed (${response.status}).`);
+        if (role !== "friends" && role !== "family") {
+          setStatus("Chat is available only to friends and family.", true);
+          return;
+        }
+        chatLayout.style.removeProperty("display");
+        initChat();
+      })
+      .catch((error) => setStatus(error.message, true));
+  }
+}
 
 function initChat() {
   mountTopbar(chatUser);
   const adminMode = chatUser.role === "admin";
   $("#role").textContent = adminMode ? "Administrator" : "Signed-in user";
+  $(".chat-presence").lastChild.textContent = adminMode ? " Refreshes every 15 sec" : " Refreshes every 7 sec";
   if (adminMode) {
     $(".chat-page-heading p").textContent = "Review conversations and moderate messages.";
     $(".chat-list-heading h3").textContent = "All conversations";
@@ -23,6 +44,7 @@ function initChat() {
   let refreshTimer;
   let adminConversationSignature = null;
   let messageLoadSequence = 0;
+  let adminListLoadSequence = 0;
 
   if (adminMode) {
     $("#conversation-list").innerHTML = `<p class="chat-list-empty">Loading conversations...</p>`;
@@ -75,15 +97,14 @@ function initChat() {
     event.preventDefault();
     const form = event.currentTarget;
     const values = new FormData(form);
-    const conversation = {
-      conversationId: Number(values.get("conversationId")),
-      peer: values.get("peer").trim()
-    };
-    if (!conversation.conversationId || !conversation.peer || conversation.peer === chatUser.name) {
-      setStatus("Enter a valid conversation ID and the other participant's username.", true);
+    const conversationId = Number(values.get("conversationId"));
+    if (!Number.isInteger(conversationId) || conversationId <= 0) {
+      setStatus("Enter a valid conversation ID.", true);
       return;
     }
     try {
+      const conversation = await chatRequest(`/chat/conversation?conversationId=${encodeURIComponent(conversationId)}`);
+      if (!conversation || !conversation.peer) throw new Error("The server returned an invalid conversation.");
       await openConversation(conversation);
       rememberConversation(conversation);
       renderConversations();
@@ -265,8 +286,10 @@ function initChat() {
   }
 
   async function loadAdminConversations() {
+    const requestSequence = ++adminListLoadSequence;
     try {
       const rows = await chatRequest("/admin/chat/conversations");
+      if (requestSequence !== adminListLoadSequence) return;
       if (!Array.isArray(rows)) throw new Error("The server returned an invalid conversation list.");
       const nextConversations = rows.map((row) => ({
         ...row,
@@ -278,6 +301,7 @@ function initChat() {
       conversations = nextConversations;
       renderConversations();
     } catch (error) {
+      if (requestSequence !== adminListLoadSequence) return;
       if (!conversations.length) {
         const empty = document.createElement("p");
         empty.className = "chat-list-empty";

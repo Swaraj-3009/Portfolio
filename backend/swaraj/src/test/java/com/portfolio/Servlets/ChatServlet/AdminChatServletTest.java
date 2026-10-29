@@ -1,6 +1,8 @@
 package com.portfolio.Servlets.ChatServlet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -13,6 +15,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 class AdminChatServletTest {
+    @Test
+    void shouldAllowOnlyFriendAndFamilyRolesToChat() {
+        assertTrue(ChatServletSupport.isChatRoleAllowed("friends"));
+        assertTrue(ChatServletSupport.isChatRoleAllowed("family"));
+        assertFalse(ChatServletSupport.isChatRoleAllowed("follower"));
+        assertFalse(ChatServletSupport.isChatRoleAllowed("requestedFriends"));
+    }
+
     @Test
     void shouldRequireAuthentication() throws Exception {
         AtomicInteger status = new AtomicInteger();
