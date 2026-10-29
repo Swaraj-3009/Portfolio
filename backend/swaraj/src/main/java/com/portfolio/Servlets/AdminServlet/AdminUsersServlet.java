@@ -47,8 +47,14 @@ public class AdminUsersServlet extends HttpServlet {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "username is required");
             return;
         }
-        if(!userService.deleteUser(username)){
-            resp.sendError(HttpServletResponse.SC_NOT_FOUND, "User account was not found or could not be removed");
+        try {
+            if(!userService.deleteUser(username)){
+                resp.sendError(HttpServletResponse.SC_NOT_FOUND, "User account was not found");
+                return;
+            }
+        } catch (IllegalStateException e) {
+            getServletContext().log("Could not remove user account " + username, e);
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "User account could not be removed");
             return;
         }
         resp.setStatus(HttpServletResponse.SC_NO_CONTENT);

@@ -47,7 +47,8 @@ function initAdminUsers() {
       remove.type = "button";
       remove.className = "btn danger";
       remove.dataset.deleteUsername = user.username;
-      remove.textContent = "Remove account";
+      remove.textContent = "Remove user";
+      remove.setAttribute("aria-label", `Remove user ${user.username}`);
       row.append(details, remove);
       list.appendChild(row);
     });

@@ -36,26 +36,23 @@ function initChat(initialChatEnabled) {
     $(".chat-list-heading h3").textContent = "All conversations";
     $("#new-chat-form").hidden = false;
     $("#new-chat-form label").textContent = "Start a conversation with a friend or family member";
-    $("#join-chat-form").hidden = true;
     $(".chat-local-note").textContent = "Admin access: all conversations are listed here.";
   }
 
-  const storageKey = `portfolioChats:${chatUser.name}`;
   const list = $("#conversation-list");
   const messages = $("#messages");
   const sendForm = $("#send-form");
   const messageInput = $("#message");
   let chatEnabled = initialChatEnabled;
-  let conversations = adminMode ? [] : readConversations();
+  let conversations = [];
   let active = null;
   let threadRefreshTimer;
-  let adminRefreshTimer;
-  let adminConversationSignature = null;
+  let listRefreshTimer;
+  let conversationListSignature = null;
   let messageLoadSequence = 0;
   let adminListLoadSequence = 0;
 
   $("#new-chat-form").addEventListener("submit", startConversation);
-  $("#join-chat-form").addEventListener("submit", joinConversation);
   list.addEventListener("click", (event) => {
     const button = event.target.closest("[data-conversation-id]");
     if (button) openConversation(conversations.find((item) => item.conversationId === Number(button.dataset.conversationId))).catch((error) => setStatus(error.message, true));
@@ -96,9 +93,9 @@ function initChat(initialChatEnabled) {
     $(".chat-presence").classList.toggle("paused", !enabled);
     chatLayout.hidden = !enabled;
     window.clearInterval(threadRefreshTimer);
-    window.clearInterval(adminRefreshTimer);
+    window.clearInterval(listRefreshTimer);
     threadRefreshTimer = null;
-    adminRefreshTimer = null;
+    listRefreshTimer = null;
     if (!enabled) {
       setStatus("Chat is disabled by the administrator.");
       return;
@@ -108,13 +105,15 @@ function initChat(initialChatEnabled) {
     if (adminMode) {
       $("#conversation-list").innerHTML = `<p class="chat-list-empty">Loading conversations...</p>`;
       loadAdminConversations();
-      adminRefreshTimer = window.setInterval(async () => {
+      listRefreshTimer = window.setInterval(async () => {
         if (!document.hidden && await refreshChatSetting()) loadAdminConversations();
       }, 15000);
-    } else if (active) {
-      openConversation(active).catch((error) => setStatus(error.message, true));
     } else {
-      renderConversations();
+      loadUserConversations();
+      listRefreshTimer = window.setInterval(async () => {
+        if (!document.hidden && await refreshChatSetting()) loadUserConversations();
+      }, 15000);
+      if (active) openConversation(active).catch((error) => setStatus(error.message, true));
     }
   }
 
@@ -143,35 +142,14 @@ function initChat(initialChatEnabled) {
       await withBusyButton(button, "...", async () => {
         const result = await chatRequest("/chat/createChat", { reciever: recipient });
         const conversation = { conversationId: Number(result.conversationId), peer: recipient, adminConversation: chatUser.role === "admin" };
-        rememberConversation(conversation);
+        conversations = [conversation, ...conversations.filter((item) => item.conversationId !== conversation.conversationId)];
         form.reset();
         renderConversations();
         await openConversation(conversation);
-        if (adminMode) loadAdminConversations();
+        if (adminMode) await loadAdminConversations();
+        else await loadUserConversations();
         setStatus(`Conversation with ${recipient} is ready.`);
       });
-    } catch (error) {
-      setStatus(error.message, true);
-    }
-  }
-
-  async function joinConversation(event) {
-    event.preventDefault();
-    if (!chatEnabled) return;
-    const form = event.currentTarget;
-    const values = new FormData(form);
-    const conversationId = Number(values.get("conversationId"));
-    if (!Number.isInteger(conversationId) || conversationId <= 0) {
-      setStatus("Enter a valid conversation ID.", true);
-      return;
-    }
-    try {
-      const conversation = await chatRequest(`/chat/conversation?conversationId=${encodeURIComponent(conversationId)}`);
-      if (!conversation || !conversation.peer) throw new Error("The server returned an invalid conversation.");
-      await openConversation(conversation);
-      rememberConversation(conversation);
-      renderConversations();
-      form.reset();
     } catch (error) {
       setStatus(error.message, true);
     }
@@ -334,7 +312,7 @@ function initChat(initialChatEnabled) {
     if (!conversations.length) {
       const empty = document.createElement("p");
       empty.className = "chat-list-empty";
-      empty.textContent = "No recent conversations yet.";
+      empty.textContent = adminMode ? "No conversations yet." : "No conversations yet. Start one above and it will appear here.";
       list.appendChild(empty);
       return;
     }
@@ -365,8 +343,8 @@ function initChat(initialChatEnabled) {
         };
       });
       const signature = nextConversations.map((row) => `${row.conversationId}:${row.user1}:${row.user2}`).join("|");
-      if (signature === adminConversationSignature) return;
-      adminConversationSignature = signature;
+      if (signature === conversationListSignature) return;
+      conversationListSignature = signature;
       conversations = nextConversations;
       renderConversations();
     } catch (error) {
@@ -381,17 +359,32 @@ function initChat(initialChatEnabled) {
     }
   }
 
-  function rememberConversation(conversation) {
-    conversations = [conversation, ...conversations.filter((item) => item.conversationId !== conversation.conversationId)].slice(0, 30);
-    localStorage.setItem(storageKey, JSON.stringify(conversations));
-  }
-
-  function readConversations() {
+  async function loadUserConversations() {
+    if (!chatEnabled || adminMode) return;
+    const requestSequence = ++adminListLoadSequence;
     try {
-      const saved = JSON.parse(localStorage.getItem(storageKey)) || [];
-      return Array.isArray(saved) ? saved.filter((item) => Number.isInteger(item.conversationId) && item.conversationId > 0 && typeof item.peer === "string") : [];
-    } catch {
-      return [];
+      const rows = await chatRequest("/chat/conversations");
+      if (requestSequence !== adminListLoadSequence) return;
+      if (!Array.isArray(rows)) throw new Error("The server returned an invalid conversation list.");
+      const nextConversations = rows.map((row) => ({
+        ...row,
+        peer: row.user1 === chatUser.name ? row.user2 : row.user1,
+        adminConversation: false
+      }));
+      const signature = nextConversations.map((row) => `${row.conversationId}:${row.user1}:${row.user2}`).join("|");
+      if (signature === conversationListSignature) return;
+      conversationListSignature = signature;
+      conversations = nextConversations;
+      renderConversations();
+    } catch (error) {
+      if (requestSequence !== adminListLoadSequence || !chatEnabled) return;
+      if (!conversations.length) {
+        const empty = document.createElement("p");
+        empty.className = "chat-list-empty";
+        empty.textContent = error.message;
+        list.replaceChildren(empty);
+      }
+      setStatus(error.message, true);
     }
   }
 

@@ -68,6 +68,13 @@ function initRelationships(user) {
     });
     const results = await Promise.all(requests);
     const listsByKey = Object.fromEntries(results);
+    if (!admin) {
+      Object.values(listsByKey).forEach((result) => {
+        if (!result.error) {
+          result.names = result.names.filter((name) => name.toLowerCase() !== user.name.toLowerCase());
+        }
+      });
+    }
     lists.replaceChildren();
     if (!admin && role === "requestedFriends") {
       const pending = document.createElement("section");
@@ -90,6 +97,7 @@ function initRelationships(user) {
     });
     renderCounts(listsByKey);
     sections.forEach((item) => renderList(item, listsByKey[item.key]));
+    if (!admin && (role === "friends" || role === "family")) renderMembershipAction(role);
     if (!admin && role === "follower") renderFriendRequestButton();
   }
 
@@ -146,17 +154,14 @@ function initRelationships(user) {
       const actions = admin && item.key === "requestedFriend"
         ? [["acceptFriend", "Accept"], ["cancelFriendRequest", "Cancel request"]]
         : admin && item.key === "friends"
-          ? [["addFamily", "Promote to family"]]
+          ? [["addFamily", "Promote to family"], ["demoteFriend", "Demote to follower"]]
           : admin && item.key === "family"
             ? [["demoteFamily", "Demote to friend"]]
-            : !admin && role === "friends" && item.key === "friends" && name === user.name
-              ? [["demoteFriend", "Demote to follower"]]
-            : !admin && role === "family" && item.key === "family" && name === user.name
-              ? [["demoteFamily", "Leave family"]] : [];
+            : [];
       actions.forEach(([action, label]) => {
         const button = document.createElement("button");
         button.type = "button";
-        button.className = `btn${action === "acceptFriend" ? " primary" : action === "cancelFriendRequest" || action === "demoteFamily" ? " danger" : ""}`;
+        button.className = `btn${action === "acceptFriend" || action === "addFamily" ? " primary" : action === "cancelFriendRequest" || action === "demoteFamily" || action === "demoteFriend" ? " danger" : ""}`;
         button.dataset.relationshipAction = action;
         button.dataset.username = name;
         button.textContent = label;
@@ -171,6 +176,18 @@ function initRelationships(user) {
       list.appendChild(row);
     });
     target.appendChild(list);
+  }
+
+  function renderMembershipAction(currentRole) {
+    const actions = document.createElement("div");
+    actions.className = "btns relationship-request";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = currentRole === "family" ? "btn danger" : "btn";
+    button.dataset.relationshipAction = currentRole === "family" ? "demoteFamily" : "demoteFriend";
+    button.textContent = currentRole === "family" ? "Leave family" : "Remove friend status";
+    actions.appendChild(button);
+    lists.appendChild(actions);
   }
 
   function emptyMessage(text) {
@@ -213,7 +230,7 @@ function initRelationships(user) {
     try {
       const labels = { acceptFriend: "Accepting...", addFamily: "Promoting...", demoteFamily: "Demoting...", demoteFriend: "Demoting...", cancelFriendRequest: "Cancelling..." };
       await withBusyButton(button, labels[action] || "Saving...", async () => {
-        if (action === "acceptFriend" || action === "addFamily") {
+        if (action === "acceptFriend" || action === "addFamily" || (admin && action === "demoteFriend")) {
           await submit(`/relation/${action}`, { username }, "Relationship updated");
         } else {
           await submit(`/relation/${action}`, username ? { username } : {}, "Relationship updated");
@@ -223,8 +240,8 @@ function initRelationships(user) {
         acceptFriend: `${username} is now a friend.`,
         addFamily: `${username} is now family.`,
         demoteFamily: username ? `${username} is now a friend.` : "You left the family group.",
+        demoteFriend: username ? `${username} is now a follower.` : "You removed your friend status and are now a follower.",
         cancelFriendRequest: username ? `${username}'s request was cancelled.` : "Your friend request was cancelled.",
-        demoteFriend: "You are now a follower."
       };
       setStatus(messages[action] || "Relationship updated.");
       await loadRelationships();

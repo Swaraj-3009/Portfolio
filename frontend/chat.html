@@ -20,14 +20,9 @@
           <label for="recipient">Start a conversation</label>
           <div class="chat-input-row"><input id="recipient" name="recipient" autocomplete="off" placeholder="Username" required><button class="btn primary chat-icon-button" type="submit" aria-label="Start conversation" title="Start conversation">+</button></div>
         </form>
-        <form id="join-chat-form" class="chat-join-form">
-          <label for="conversation-id">Open a conversation</label>
-          <input id="conversation-id" name="conversationId" type="number" min="1" placeholder="Conversation ID" required>
-          <button class="btn chat-open-button" type="submit">Open conversation</button>
-        </form>
-        <div class="chat-list-heading"><h3>Recent</h3><span id="conversation-count" class="muted sm">0</span></div>
+        <div class="chat-list-heading"><h3>Your conversations</h3><span id="conversation-count" class="muted sm">0</span></div>
         <div class="chat-conversation-list" id="conversation-list"></div>
-        <p class="chat-local-note">Recent conversations are saved in this browser.</p>
+        <p class="chat-local-note">Your conversations are saved to your account and appear here automatically.</p>
       </aside>
       <section class="chat-thread" aria-label="Message thread">
         <div class="chat-thread-heading" id="thread-heading">

@@ -3,6 +3,7 @@ package com.portfolio.DAO.DaoImpl;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -54,12 +55,39 @@ public class ChatDaoImpl implements ChatDAO{
         if(chatSettingsInitialized) return;
         synchronized(ChatDaoImpl.class){
             if(chatSettingsInitialized) return;
+            ensureChatTables(con);
             ensureChatSettingsTable(con);
             try(PreparedStatement init = con.prepareStatement(
                     "INSERT IGNORE INTO chat_settings (setting_id, enabled) VALUES (1, TRUE)")){
                 init.executeUpdate();
             }
             chatSettingsInitialized = true;
+        }
+    }
+
+    private void ensureChatTables(Connection con) throws Exception {
+        String conversationsSql = "CREATE TABLE IF NOT EXISTS chat_user ("
+                + "conversation_id INT NOT NULL AUTO_INCREMENT, "
+                + "user1 VARCHAR(64) NOT NULL, "
+                + "user2 VARCHAR(64) NOT NULL, "
+                + "PRIMARY KEY (conversation_id), "
+                + "UNIQUE KEY uq_chat_user_pair (user1, user2)"
+                + ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+        String messagesSql = "CREATE TABLE IF NOT EXISTS chat ("
+                + "message_id BIGINT NOT NULL AUTO_INCREMENT, "
+                + "conversation_id INT NOT NULL, "
+                + "message TEXT NOT NULL, "
+                + "sender VARCHAR(64) NOT NULL, "
+                + "reciever VARCHAR(64) NOT NULL, "
+                + "time DATETIME(6) NOT NULL, "
+                + "PRIMARY KEY (message_id), "
+                + "KEY idx_chat_conversation_time (conversation_id, time, message_id), "
+                + "CONSTRAINT fk_chat_conversation FOREIGN KEY (conversation_id) "
+                + "REFERENCES chat_user (conversation_id)"
+                + ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+        try(Statement statement = con.createStatement()){
+            statement.execute(conversationsSql);
+            statement.execute(messagesSql);
         }
     }
 
@@ -169,6 +197,33 @@ public class ChatDaoImpl implements ChatDAO{
                 conversation.setUser1(rs.getString("user1"));
                 conversation.setUser2(rs.getString("user2"));
                 conversations.add(conversation);
+            }
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+        return conversations;
+    }
+
+    @Override
+    public List<ChatConversation> getConversationsForUser(String username) {
+        List<ChatConversation> conversations = new ArrayList<>();
+        String sql = "SELECT conversation_id, user1, user2 FROM chat_user "
+                + "WHERE user1 = ? OR user2 = ? ORDER BY conversation_id DESC";
+        try(Connection con = DatabaseConnection.getConnection()){
+            initializeChatSettings(con);
+            try(PreparedStatement ps = con.prepareStatement(sql)){
+                ps.setString(1, username);
+                ps.setString(2, username);
+                try(ResultSet rs = ps.executeQuery()){
+                    while(rs.next()){
+                        ChatConversation conversation = new ChatConversation();
+                        conversation.setConversationId(rs.getInt("conversation_id"));
+                        conversation.setUser1(rs.getString("user1"));
+                        conversation.setUser2(rs.getString("user2"));
+                        conversations.add(conversation);
+                    }
+                }
             }
         }
         catch(Exception e){
@@ -328,31 +383,40 @@ public class ChatDaoImpl implements ChatDAO{
     }
     
     private int getOrCreateConversationId(Connection con, String sender, String reciever) throws Exception {
-        String insertSql = "INSERT INTO chat_user (user1, user2) "
-                + "VALUES (LEAST(?, ?), GREATEST(?, ?)) "
-                + "ON DUPLICATE KEY UPDATE conversation_id = conversation_id";
-        try(PreparedStatement ps = con.prepareStatement(insertSql)){
-            ps.setString(1, sender);
-            ps.setString(2, reciever);
-            ps.setString(3, sender);
-            ps.setString(4, reciever);
-            ps.executeUpdate();
-        }
+        String first = sender.compareToIgnoreCase(reciever) <= 0 ? sender : reciever;
+        String second = first.equals(sender) ? reciever : sender;
+        int existingId = findConversationId(con, first, second);
+        if (existingId > 0) return existingId;
 
-        String selectSql = "SELECT conversation_id FROM chat_user "
-                + "WHERE user1 = LEAST(?, ?) AND user2 = GREATEST(?, ?)";
-        try(PreparedStatement ps = con.prepareStatement(selectSql)){
-            ps.setString(1, sender);
-            ps.setString(2, reciever);
-            ps.setString(3, sender);
-            ps.setString(4, reciever);
+        String insertSql = "INSERT INTO chat_user (user1, user2) VALUES (?, ?)";
+        try(PreparedStatement ps = con.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)){
+            ps.setString(1, first);
+            ps.setString(2, second);
+            ps.executeUpdate();
+            try(ResultSet keys = ps.getGeneratedKeys()){
+                if(keys.next()) return keys.getInt(1);
+            }
+            existingId = findConversationId(con, first, second);
+            if (existingId > 0) return existingId;
+        } catch (SQLException e) {
+            // A concurrent request can insert the same unique user pair after our lookup.
+            if (!"23000".equals(e.getSQLState())) throw e;
+            existingId = findConversationId(con, first, second);
+            if (existingId > 0) return existingId;
+            throw e;
+        }
+        throw new IllegalStateException("Conversation row was inserted without a generated ID");
+    }
+
+    private int findConversationId(Connection con, String first, String second) throws Exception {
+        String sql = "SELECT conversation_id FROM chat_user WHERE user1 = ? AND user2 = ?";
+        try(PreparedStatement ps = con.prepareStatement(sql)){
+            ps.setString(1, first);
+            ps.setString(2, second);
             try(ResultSet rs = ps.executeQuery()){
-                if(rs.next()){
-                    return rs.getInt("conversation_id");
-                }
+                return rs.next() ? rs.getInt("conversation_id") : 0;
             }
         }
-        throw new IllegalStateException("Conversation could not be created or found");
     }
 
     private boolean conversationMatchesUsers(Connection con, int conversationId, String sender, String reciever) throws Exception {

@@ -248,6 +248,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .btn.danger{border-color:rgba(255,124,124,.2);color:#ffaaaa}
 .btn.danger:hover{border-color:rgba(255,124,124,.5);background:rgba(255,124,124,.08)}
 .admin-user-management{margin-top:22px}
+.admin-dashboard-actions{margin-top:14px}
 .admin-user-management .row{align-items:flex-start;margin-bottom:12px}
 .admin-user-management h3{margin:0 0 4px}
 .admin-user-management .row p{margin:0;font-size:.82rem}

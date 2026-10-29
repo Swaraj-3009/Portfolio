@@ -14,6 +14,7 @@ public interface ChatDAO {
     public boolean isConversationParticipant(int conversationId, String username);
     public String getConversationPeer(int conversationId, String username);
     public List<ChatConversation> getAllConversations();
+    public List<ChatConversation> getConversationsForUser(String username);
     public boolean sendChat(Chat chat);
     public List<Chat> getChat(int conversationId);
     public boolean editChat(Chat chat);

@@ -42,6 +42,10 @@ public class ChatService {
         return new ChatDaoImpl().getAllConversations();
     }
 
+    public List<ChatConversation> getConversationsForUser(String username){
+        return new ChatDaoImpl().getConversationsForUser(username);
+    }
+
     //Send Chat
     public boolean sendChat(Chat chat){
         ChatDAO chatDao = new ChatDaoImpl();

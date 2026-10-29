@@ -1,6 +1,7 @@
 package com.portfolio.DAO.DaoImpl;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
@@ -41,30 +42,65 @@ public class UserDaoImpl implements UserDAO {
         String removeUser = "DELETE FROM users WHERE username = ?";
         try(Connection con = DatabaseConnection.getConnection()){
             con.setAutoCommit(false);
-            try(PreparedStatement remove = con.prepareStatement(removeUser)){
-                remove.setString(1, username);
-                if(remove.executeUpdate() != 1){
-                    con.rollback();
-                    return false;
+            try {
+                try(PreparedStatement exists = con.prepareStatement("SELECT 1 FROM users WHERE username = ?")){
+                    exists.setString(1, username);
+                    try(ResultSet rs = exists.executeQuery()){
+                        if(!rs.next()){
+                            con.rollback();
+                            return false;
+                        }
+                    }
                 }
+                // Older databases may not have initialized chat tables yet.
+                boolean hasChat = tableExists(con, "chat");
+                boolean hasConversations = tableExists(con, "chat_user");
+                if(hasChat && hasConversations){
+                    try(PreparedStatement remove = con.prepareStatement(removeMessages)){
+                        remove.setString(1, username);
+                        remove.setString(2, username);
+                        remove.executeUpdate();
+                    }
+                }
+                if(hasChat){
+                    try(PreparedStatement remove = con.prepareStatement(
+                            "DELETE FROM chat WHERE sender = ? OR reciever = ?")){
+                        remove.setString(1, username);
+                        remove.setString(2, username);
+                        remove.executeUpdate();
+                    }
+                }
+                if(hasConversations){
+                    try(PreparedStatement remove = con.prepareStatement(removeConversations)){
+                        remove.setString(1, username);
+                        remove.setString(2, username);
+                        remove.executeUpdate();
+                    }
+                }
+                try(PreparedStatement remove = con.prepareStatement(removeUser)){
+                    remove.setString(1, username);
+                    if(remove.executeUpdate() != 1){
+                        con.rollback();
+                        return false;
+                    }
+                }
+                con.commit();
+                return true;
+            } catch(Exception e) {
+                try { con.rollback(); } catch(Exception rollbackError) { e.addSuppressed(rollbackError); }
+                throw e;
             }
-            try(PreparedStatement remove = con.prepareStatement(removeMessages)){
-                remove.setString(1, username);
-                remove.setString(2, username);
-                remove.executeUpdate();
-            }
-            try(PreparedStatement remove = con.prepareStatement(removeConversations)){
-                remove.setString(1, username);
-                remove.setString(2, username);
-                remove.executeUpdate();
-            }
-            con.commit();
-            return true;
         }
         catch(Exception e){
-            e.printStackTrace();
+            throw new IllegalStateException("Could not remove user account and related data", e);
         }
-        return false;
+    }
+
+    private boolean tableExists(Connection con, String tableName) throws Exception {
+        DatabaseMetaData metadata = con.getMetaData();
+        try(ResultSet tables = metadata.getTables(con.getCatalog(), null, tableName, new String[] {"TABLE"})){
+            return tables.next();
+        }
     }
 
     @Override
